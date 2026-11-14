@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="sun_bg">#FFF7E6</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_soft">#F2F9FF</color>
+    <color name="outline">#DCEBF6</color>
+    <color name="outline_warm">#FFE1AE</color>
+    <color name="ink">#233B53</color>
+    <color name="ink_soft">#6B8199</color>
+    <color name="on_sun">#FFFFFF</color>
+    <color name="sun_orange">#FF8A3D</color>
+    <color name="sun_yellow">#FFC94D</color>
+    <color name="sky_blue">#4C9AFF</color>
+    <color name="mint">#2EC4B6</color>
+    <color name="coral">#FF6B6B</color>
+    <color name="dot_off">#DCE9F2</color>
+    <color name="dot_on">#FFC94D</color>
+    <color name="dot_accent">#FF6B6B</color>
+    <color name="icon_background">#FFC94D</color>
+</resources>

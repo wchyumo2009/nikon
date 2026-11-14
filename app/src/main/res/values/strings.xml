@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">钢琴节拍器</string>
+    <string name="subtitle">SUNNY METRONOME · 让每一拍都充满活力</string>
+    <string name="bpm">BPM</string>
+    <string name="minus">−</string>
+    <string name="plus">+</string>
+    <string name="start">开始</string>
+    <string name="stop">停止</string>
+    <string name="tap">TAP 测速</string>
+    <string name="mode_title">摆动方式</string>
+    <string name="mode_top">上端摆动</string>
+    <string name="mode_bottom">下端摆动</string>
+    <string name="mode_spring">弹簧式摆动</string>
+    <string name="time_signature">拍号</string>
+    <string name="sound">音色</string>
+    <string name="volume">音量</string>
+    <string name="accent">重拍</string>
+    <string name="presets">常用速度</string>
+    <string name="status_ready">准备就绪 · 轻触开始，活力起拍</string>
+    <string name="status_running">运行中 · %1$d BPM · %2$s</string>
+    <string name="status_paused">已停止</string>
+    <string name="notification_channel">节拍器播放</string>
+    <string name="notification_channel_desc">熄屏后继续打拍，可从通知中停止</string>
+    <string name="notification_playing">节拍器运行中 · 熄屏后继续播放</string>
+</resources>
