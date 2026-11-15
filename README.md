@@ -1,6 +1,6 @@
 # 钢琴节拍器（Android）
 
-依据 `spec/ME2AI/20261113需求描述.md` 构建的原生 Android 应用：可在 Android 手机与平板运行，实现钢琴/机械节拍器功能，摆锤支持**上端摆动、下端摆动、弹簧式摆动**自由切换，界面采用明亮阳光的卡片式布局，搭配浅枫木拟真机身。
+依据 `spec/ME2AI/20261113需求描述.md` 构建的原生 Android 应用：可在 Android 手机与平板运行，实现钢琴/机械节拍器功能，摆锤支持**上端摆动、下端摆动、弹簧式摆动**自由切换，界面提供明亮阳光的卡片式布局与浅枫木拟真机身，并内置一套素雅的「宋韵」宋式美学主题；支持钢琴、机械、木鱼、电子、古琴、编钟、磬音、堂鼓、竹板九种内置音色，摆针行至最高点时发出拍点声。
 
 ## 一键准备环境并构建
 
@@ -64,23 +64,38 @@ adb install -r app\build\outputs\apk\debug\app-debug.apk
 adb shell am start -n com.nikon.metronome/.MainActivity
 ```
 
+## 打包可安装包
+
+```powershell
+.\gradlew.bat assembleRelease
+```
+
+产物 `app/build/outputs/apk/release/app-release.apk`（已签名的 release APK，约 66 KB）；根目录另存一份 `nikon-metronome-v1.0.0-release.apk` 便于分发，直接安装：
+
+```powershell
+adb install -r nikon-metronome-v1.0.0-release.apk
+```
+
+`release` 复用 AGP 生成的 debug 签名，因此可直接安装、也能覆盖同包名的 debug 包；上架应用商店前需替换为正式发布密钥并递增 `versionCode` / `versionName`。根目录原有的 `nikon-metronome-v1.0.0.apk` 是早期构建产物，保留未动。
+
 ## 需求对应
 
 | 需求 | 实现 |
 | --- | --- |
 | Android 平板与手机可运行，环境不存在时自动准备 | 原生 Android 应用（`minSdk 23`、`targetSdk 34`），手机竖屏上下布局、横屏与平板左右分栏；`scripts/setup-env.ps1` 自动准备 JDK / SDK / Wrapper / 设备环境 |
-| 钢琴节拍器，摆可自由切换三种摆动 | 40–240 BPM、拍号 2/4·3/4·4/4·6/8、重拍、钢琴/机械/木鱼/电子音色、音量、常用速度预设、TAP 测速；`上端摆动`、`下端摆动`、`弹簧式摆动` 一键切换，运行中也可切换 |
-| 页面美观、类似真实节拍器 | `PendulumView` 自绘浅枫木金字塔机身、木纹、亮白刻度盘与 BPM 刻度、亮金摆杆与配重滑块、青绿支点、"SUNNY BEAT" 铭牌；配重位置随 BPM 改变，摆的相位与声音严格同步；浅色渐变背景、白色圆角卡片与暖橙/青绿点缀呼应 |
+| 钢琴节拍器，摆可自由切换三种摆动 | 40–240 BPM、拍号 2/4·3/4·4/4·6/8、重拍、钢琴/机械/木鱼/电子/古琴/编钟/磬音/堂鼓/竹板九种内置音色、音量、常用速度预设、TAP 测速；`上端摆动`、`下端摆动`、`弹簧式摆动` 一键切换，运行中也可切换 |
+| 页面美观、类似真实节拍器 | `PendulumView` 自绘浅枫木金字塔机身、木纹、亮白刻度盘与 BPM 刻度、亮金摆杆与配重滑块、青绿支点、"SUNNY BEAT" 铭牌；配重位置随 BPM 改变，摆的相位与声音严格同步；浅色渐变背景、白色圆角卡片与暖橙/青绿点缀呼应；宋韵主题下切换为宣纸底、青瓷摆锤、朱砂按钮、墨色字与"宋韵"铭牌 |
 
 ## 实现要点
 
 - **节拍精度**：`MetronomeEngine` 在独立线程以 `System.nanoTime()` 累积下一拍时间，用 `LockSupport.parkNanos` 对齐，不依赖 UI 刷新；设备休眠落后超过一拍时重新对齐。
-- **声画同步**：引擎暴露连续拍相位 `getBeatPhase()`，摆角取 `A·cos(π·phase)`，每拍摆到一侧极限并发出"嗒"声；停止后按阻尼摆回中位。
-- **声音**：`SoundSynth` 在内存中合成钢琴（基频+泛音+击弦噪声+指数衰减）、机械 tick、木鱼、电子四组 PCM，用 4 路静态 `AudioTrack` 轮播，钢琴音可自然叠音；无音频资源文件、无第三方依赖。
+- **声画同步（最高点击点发声）**：引擎暴露连续拍相位 `getBeatPhase()`，`TOP`/`BOTTOM`/`SPRING` 三种摆法分别取 `cos(π·phase)` / `-sin(π·phase)` / 阻尼振荡，使整数 beat phase（即发声瞬间）恰好对应摆针视觉最高点，声音与摆到顶同步；停止后按阻尼摆回中位。
+- **声音**：`SoundSynth` 在内存中合成钢琴、机械、木鱼、电子、古琴（丝弦拨奏）、编钟（青铜不谐泛音）、磬音（清越石音）、堂鼓（落频鼓点）、竹板（干裂拍板）九种音色 PCM，用 4 路静态 `AudioTrack` 轮播，钢琴音可自然叠音；无音频资源文件、无第三方依赖。
 - **三种摆动**：`TOP` 支点在上、摆杆向下；`BOTTOM` 经典机械式支点在下、摆杆向上；`SPRING` 顶部悬挂弹簧，随拍伸缩并轻微摆动。
-- **视觉风格**：奶油黄→天蓝→薄荷绿的渐变背景叠加阳光与天空光斑，白色圆角卡片分区，暖橙主按钮、青绿辅助色、胶囊控件与大号 BPM 数字；`PendulumView` 以透明底只绘阳光光晕与明亮枫木机身。
+- **视觉风格 / 主题**：奶油黄→天蓝→薄荷绿的渐变背景叠加阳光与天空光斑，白色圆角卡片分区，暖橙主按钮、青绿辅助色、胶囊控件与大号 BPM 数字；`PendulumView` 以透明底只绘阳光光晕与明亮枫木机身（作为插画在两种主题下保持暖色）。`values/colors.xml` 与 `values-night/colors.xml` 提供亮/暗两套配色，品牌行按钮在「跟随系统 → 亮色 → 暗色 → 宋韵」间循环；手动模式由 `attachBaseContext()` 覆盖 `uiMode` 选择资源，跟随模式随系统夜间模式自动切换；宋韵主题以独立 `SongTheme` 提供宣纸/青瓷/朱砂/墨色配色与细线小圆角画风，控件与机身通过 `?attr` 主题属性与 `PendulumView.setSongStyle` 统一切换。
+- **屏幕与交互**：播放时给窗口加 `FLAG_KEEP_SCREEN_ON` 阻止自动息屏，停止后清除（用户主动按电源键仍可熄屏且声音继续）；`styles.xml` 去除控件默认的 48dp 最小高度、控制区压缩为紧凑单列，摆锤卡片按剩余空间伸缩，竖屏全部控件一屏可见；`SeekBar` 轨道 12dp、常态滑块 16dp（略大于轨道），手指按下时切换为 20dp 滑块。
 - **状态 / 熄屏续播**：BPM、拍号、模式、音色、音量、重拍保存在 `SharedPreferences`；`MetronomeService` 以进程内单例持有引擎，旋转屏幕、按 Home 或熄屏后节拍与声音都不中断。播放时服务进入前台（`mediaPlayback`）并持有 `PARTIAL_WAKE_LOCK`，通知可返回应用或一键停止；`MainActivity.onStop()` 只解绑 UI 回调，不再停表；按返回键退出应用时才停止。
-- **屏幕适配**：`MainActivity` 按 `smallestScreenWidthDp ≥ 600` 或横屏选择 `root_wide`（左右分栏），否则 `root_portrait`（上下布局）；两套布局均为「品牌行 + 摆锤卡片 + 控制卡片」，设置项在 `ScrollView` 内，开始/停止与 TAP 按钮由 `control_actions.xml` 固定在面板底部。
+- **屏幕适配**：`MainActivity` 按 `smallestScreenWidthDp ≥ 600` 或横屏选择 `root_wide`（左右分栏），否则 `root_portrait`（上下布局）；两套布局均为「品牌行（含主题按钮）+ 摆锤卡片 + 控制卡片」，竖屏控制区按内容高度完整展示、摆锤卡片自适应剩余空间，开始/停止与 TAP 按钮由 `control_actions.xml` 固定在面板底部；横屏或屏幕高度不足时控制卡片内保留 `ScrollView` 兜底。
 - **依赖**：仅 Android 平台 API + AGP 8.2.2 / Gradle 8.2，无 AndroidX 与第三方库。`settings.gradle` 优先使用阿里云 Google/Central 镜像（本机 `maven.google.com` 不可达），官方源作为后备。
 
 ## 目录
@@ -110,6 +125,10 @@ scripts/setup-env.ps1    自动环境准备 + 构建 + 安装
 | 华为 P50 模拟器（1224×2700 @460 dpi，sw426dp，竖屏） | `-Device P50` 自动创建 `nikon_huawei_p50`、写入 AVD 屏幕参数，启动后 `wm size` / `wm density` 复核通过；上下布局，开始/TAP 按钮完整固定在面板底部（此前会被滚动区裁掉，已修复）；点击开始后按钮变为"停止"，无 `FATAL EXCEPTION` |
 | 华为平板模拟器（2560×1600 @280 dpi，sw914dp，横屏） | `-Device Pad` 同上；配置显示 `xlrg land sw914dp w1463dp`，机身与右侧控制面板左右分栏，按钮固定在右下；点击开始后按钮变为"停止"，无 `FATAL EXCEPTION` |
 | 双设备同时在线 | `-Device All` 复用/启动 `emulator-5556`（P50）与 `emulator-5558`（平板），按 `adb -s <serial>` 分别 `install -r` 与 `am start` 均成功 |
+| 可安装包打包（2026-11-14） | `assembleRelease` BUILD SUCCESSFUL；`app-release.apk` 54,284 字节，v1/v2 签名与 zipalign 校验通过，`aapt2 dump badging` 显示 minSdk 23 / targetSdk 34 / versionName 1.0.0；复制到根目录 `nikon-metronome-v1.0.0-release.apk`，`adb install -r` 成功、冷启动无异常 |
+| 宋式美学主题（2026-11-14） | 主题按钮在「跟随 → 亮色 → 暗色 → 宋韵」四态循环；切到宋韵后标题变"宋韵节拍器"、副标题变"SONG DYNASTY · 拟真摆锤节拍器"、机身与按钮换为宣纸/青瓷/朱砂/墨色画风、状态文案同步为宋式；`am start` 后 `ui dump` 显示完整控件树、无 `FATAL EXCEPTION`、截图确认素雅视觉 |
+| 九种内置音色（2026-11-14） | Spinner 下拉列出钢琴/机械/木鱼/电子/古琴/编钟/磬音/堂鼓/竹板九项；`SoundSynth` 逐个 `case` 合成，音量经统一归一化，切换不崩溃 |
+| 播放首拍后崩溃修复（2026-11-14） | 原 `AudioTrack.reloadStaticData()` 在 Android 14+ 部分设备触发原生崩溃（首拍正常、约第 5 拍复用 slot 时崩）；改为静态轨道重复 `play()` 无需重载；修复后持续播放 7 秒进程存活（pid 2489）、无任何 `FATAL`/`SIGSEGV`/`tombstone` |
 
 说明与边界：
 
@@ -117,4 +136,6 @@ scripts/setup-env.ps1    自动环境准备 + 构建 + 安装
 - 本机 WHPX 下 `-gpu swiftshader_indirect` 曾导致 `qemu-system-x86_64.exe` 崩溃，脚本已改用 `-gpu host`；模拟器长时间运行后仍可能自行退出，重新执行 `-WithEmulator` 即可再次准备。
 - 熄屏续播验证（2026-11-14，API 34 模拟器）：按电源键后 `mWakefulness=Asleep`，前台服务、`nikon:metronome` 唤醒锁与本应用 `state:started` 的 AudioTrack 仍保持；亮屏后界面仍为"运行中"；从通知点"停止"后服务、音频通道、唤醒锁与界面状态同步释放，无异常日志。
 - 华为设备档位模拟的是屏幕规格与布局限定符，系统为 AOSP Android 14，不含 EMUI/HarmonyOS、厂商省电策略与挖孔屏；冷启动时系统可能出现一次 "Process system isn't responding"（keystore 初始化）以及前台服务的通知权限弹窗，点 "Wait" / "Don't allow" 后即可继续，与应用逻辑无关。
+- 视觉风格验证（2026-11-14，API 34 模拟器）：竖屏与横屏分栏均呈现浅色渐变、白色圆角卡片与明亮枫木机身；开始/停止、拍点点亮、摆动方式选中态正常；旋转重建后仍为"运行中"且前台服务不中断。
+- 四项调整验证（2026-11-14，API 34 模拟器）：6 秒屏幕超时下播放 10 秒后 `mWakefulness=Awake` 且窗口 flags 含 `KEEP_SCREEN_ON`，停止 10 秒后进入 `Dozing`；主题按钮循环切换亮/暗/跟随，`cmd uimode night yes/no` 下跟随模式自动换肤；关键控件 bounds 全落在 2700px 屏幕内（开始按钮 bottom=2568），一屏无裁切；滑杆长按截图对比滑块明显放大；主题切换与旋转后仍为"运行中"、前台服务不中断，无异常日志。
 - 未验证：实体手机/平板上的音效听感与震动、无障碍与键盘操作，以及厂商省电策略下熄屏长时间续播（个别厂商需在系统设置中允许应用后台运行）。构建产物为同一 APK，通过 `minSdk 23` 与两套布局适配不同屏幕。

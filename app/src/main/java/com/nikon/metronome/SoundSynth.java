@@ -15,8 +15,23 @@ final class SoundSynth {
             case PIANO:
                 durationMs = 460;
                 break;
+            case BELL:
+                durationMs = 720;
+                break;
+            case GUQIN:
+                durationMs = 420;
+                break;
+            case CHIME:
+                durationMs = 340;
+                break;
+            case DRUM:
+                durationMs = 230;
+                break;
             case WOODBLOCK:
                 durationMs = 170;
+                break;
+            case BAMBOO:
+                durationMs = 110;
                 break;
             case ELECTRONIC:
                 durationMs = 90;
@@ -64,6 +79,63 @@ final class SoundSynth {
                             * Math.exp(-t * 75.0) * 0.6 * base;
                     break;
                 }
+                // Plucked silk string: low fundamentals, slowly fading partials.
+                case GUQIN: {
+                    double f = accent ? 293.66 : 220.0;
+                    double attack = 1.0 - Math.exp(-t * 700.0);
+                    double decay = Math.exp(-t * 4.2);
+                    wave = Math.sin(2 * Math.PI * f * t)
+                            + 0.52 * Math.sin(2 * Math.PI * f * 2.002 * t) * Math.exp(-t * 3.4)
+                            + 0.28 * Math.sin(2 * Math.PI * f * 3.008 * t) * Math.exp(-t * 5.1)
+                            + 0.14 * Math.sin(2 * Math.PI * f * 4.016 * t) * Math.exp(-t * 7.2);
+                    wave += noise(i) * Math.exp(-t * 220.0) * 0.10;
+                    wave *= attack * decay * 0.46 * base;
+                    break;
+                }
+                // Bronze bell: deliberately inharmonic partials with a slow bloom.
+                case BELL: {
+                    double f = accent ? 587.33 : 440.0;
+                    double attack = 1.0 - Math.exp(-t * 260.0);
+                    wave = Math.sin(2 * Math.PI * f * 0.56 * t) * Math.exp(-t * 2.1)
+                            + 0.72 * Math.sin(2 * Math.PI * f * 1.0 * t) * Math.exp(-t * 2.6)
+                            + 0.48 * Math.sin(2 * Math.PI * f * 1.47 * t) * Math.exp(-t * 3.4)
+                            + 0.34 * Math.sin(2 * Math.PI * f * 2.76 * t) * Math.exp(-t * 5.0)
+                            + 0.20 * Math.sin(2 * Math.PI * f * 5.41 * t) * Math.exp(-t * 8.0)
+                            + 0.11 * Math.sin(2 * Math.PI * f * 8.93 * t) * Math.exp(-t * 12.0);
+                    wave *= attack * 0.34 * base;
+                    break;
+                }
+                // Stone chime: bright, pure and quick.
+                case CHIME: {
+                    double f = accent ? 1760.0 : 1318.51;
+                    double attack = 1.0 - Math.exp(-t * 1200.0);
+                    wave = (Math.sin(2 * Math.PI * f * t)
+                            + 0.44 * Math.sin(2 * Math.PI * f * 2.76 * t) * Math.exp(-t * 8.0)
+                            + 0.22 * Math.sin(2 * Math.PI * f * 5.18 * t) * Math.exp(-t * 14.0))
+                            * attack * Math.exp(-t * 11.0) * 0.52 * base;
+                    break;
+                }
+                // Hall drum: falling low sine plus a short skin-noise transient.
+                case DRUM: {
+                    double f = 150.0 - 90.0 * (1.0 - Math.exp(-t * 24.0));
+                    double phase = 2 * Math.PI * (150.0 * t
+                            - 90.0 * (t - (1.0 - Math.exp(-t * 24.0)) / 24.0));
+                    wave = Math.sin(phase) * Math.exp(-t * 15.0) * 0.72
+                            + noise(i) * Math.exp(-t * 90.0) * 0.34
+                            + Math.sin(2 * Math.PI * f * 2.0 * t) * Math.exp(-t * 26.0) * 0.16;
+                    wave *= base;
+                    break;
+                }
+                // Bamboo clapper: dry, hollow and very short.
+                case BAMBOO: {
+                    double f = accent ? 940.0 : 700.0;
+                    double decay = Math.exp(-t * 46.0);
+                    wave = (Math.sin(2 * Math.PI * f * t)
+                            + 0.26 * Math.sin(2 * Math.PI * f * 1.86 * t)
+                            + Math.signum(Math.sin(2 * Math.PI * f * 0.5 * t)) * 0.12
+                            + noise(i) * 0.42 * Math.exp(-t * 190.0)) * decay * 0.55 * base;
+                    break;
+                }
                 case MECHANICAL:
                 default: {
                     double f = accent ? 1650.0 : 1180.0;
@@ -87,10 +159,8 @@ final class SoundSynth {
     }
 
     /**
-     * The four timbres have very different raw peaks (the short electronic
-     * click is roughly 10 dB below the piano). Scale every sample to the same
-     * near-full-scale peak so the volume slider means the same for all of them
-     * and the clicks are clearly audible on a phone speaker.
+     * Timbres have very different raw peaks. Scale every sample to the same
+     * near-full-scale peak so the volume slider means the same for all of them.
      */
     private static void normalise(short[] pcm) {
         int peak = 0;

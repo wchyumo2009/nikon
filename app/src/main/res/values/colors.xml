@@ -8,6 +8,8 @@
     <color name="ink">#233B53</color>
     <color name="ink_soft">#6B8199</color>
     <color name="on_sun">#FFFFFF</color>
+    <!-- Always dark: text on the warm-orange primary buttons in both themes. -->
+    <color name="on_primary">#233B53</color>
     <color name="sun_orange">#FF8A3D</color>
     <color name="sun_yellow">#FFC94D</color>
     <color name="sky_blue">#4C9AFF</color>
@@ -17,4 +19,66 @@
     <color name="dot_on">#FFC94D</color>
     <color name="dot_accent">#FF6B6B</color>
     <color name="icon_background">#FFC94D</color>
+
+    <color name="bg_grad_start">#FFF7E4</color>
+    <color name="bg_grad_center">#EAF7FF</color>
+    <color name="bg_grad_end">#E7FAF0</color>
+    <color name="glow_sun_start">#66FFD66B</color>
+    <color name="glow_sun_end">#00FFD66B</color>
+    <color name="glow_sky_start">#224C9AFF</color>
+    <color name="glow_sky_end">#004C9AFF</color>
+    <color name="card_start">#FFFFFF</color>
+    <color name="card_end">#F4FBFF</color>
+    <color name="button_start">#FFFFFF</color>
+    <color name="button_end">#F0F8FF</color>
+    <color name="button_pressed_start">#FFF3D9</color>
+    <color name="button_pressed_end">#FFD89B</color>
+    <color name="mode_selected_start">#FFDA6B</color>
+    <color name="mode_selected_end">#FFA23D</color>
+    <color name="start_grad_start">#FFD75E</color>
+    <color name="start_grad_end">#FF8A3D</color>
+    <color name="start_stroke">#FFE9B0</color>
+    <color name="stop_grad_start">#FF9E92</color>
+    <color name="stop_grad_end">#F26363</color>
+    <color name="stop_stroke">#FFD0C4</color>
+    <color name="track_bg">#A8D3E8</color>
+    <color name="track_progress_start">#FFD75E</color>
+    <color name="track_progress_end">#FF8A3D</color>
+    <color name="thumb_start">#FFFFFF</color>
+    <color name="thumb_end">#FFC94D</color>
+
+    <!-- 宋式美学：宣纸、天青、墨色、朱砂 -->
+    <color name="song_bg">#EFEADB</color>
+    <color name="song_bg_start">#F7F3E8</color>
+    <color name="song_bg_center">#EFECE0</color>
+    <color name="song_bg_end">#E6EFE9</color>
+    <color name="song_glow_start">#1F7FA79B</color>
+    <color name="song_glow_end">#007FA79B</color>
+    <color name="song_card_start">#FBF8F0</color>
+    <color name="song_card_end">#F4F1E6</color>
+    <color name="song_outline">#D8D2C2</color>
+    <color name="song_chip_stroke">#C9C1AC</color>
+    <color name="song_button_start">#FBF8F0</color>
+    <color name="song_button_end">#F2EEE2</color>
+    <color name="song_button_pressed_start">#E7E0CE</color>
+    <color name="song_button_pressed_end">#DAD2BC</color>
+    <color name="song_mode_selected_start">#B9D2C9</color>
+    <color name="song_mode_selected_end">#8FB3A5</color>
+    <color name="song_start_start">#B5543A</color>
+    <color name="song_start_end">#8E3B28</color>
+    <color name="song_stop_start">#6B756E</color>
+    <color name="song_stop_end">#3C4A44</color>
+    <color name="song_ink">#2F3B38</color>
+    <color name="song_ink_soft">#7A8B84</color>
+    <color name="song_accent">#A6452F</color>
+    <color name="song_jade">#4E7C75</color>
+    <color name="song_on_primary">#FBF8F0</color>
+    <color name="song_dot_off">#D8D2C2</color>
+    <color name="song_dot_on">#A6452F</color>
+    <color name="song_dot_accent">#8E3B28</color>
+    <color name="song_track_bg">#DDD8C8</color>
+    <color name="song_track_progress_start">#B5543A</color>
+    <color name="song_track_progress_end">#8E3B28</color>
+    <color name="song_thumb_start">#FBF8F0</color>
+    <color name="song_thumb_end">#B9D2C9</color>
 </resources>

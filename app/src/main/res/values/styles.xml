@@ -1,12 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Theme-dependent paints. Layouts and dynamically created views resolve
+         these so a single setTheme() call swaps the whole visual language. -->
+    <attr name="appBackground" format="reference" />
+    <attr name="panelBackground" format="reference" />
+    <attr name="buttonBackground" format="reference" />
+    <attr name="modeBackground" format="reference" />
+    <attr name="startBackground" format="reference" />
+    <attr name="stopBackground" format="reference" />
+    <attr name="seekTrack" format="reference" />
+    <attr name="seekThumb" format="reference" />
+    <attr name="seekThumbPressed" format="reference" />
+    <attr name="textPrimary" format="color|reference" />
+    <attr name="textSecondary" format="color|reference" />
+    <attr name="textAccent" format="color|reference" />
+    <attr name="textMint" format="color|reference" />
+    <attr name="textAction" format="color|reference" />
+    <attr name="barColor" format="color|reference" />
+    <attr name="dotOff" format="color|reference" />
+    <attr name="dotOn" format="color|reference" />
+    <attr name="dotAccent" format="color|reference" />
+    <attr name="dotStroke" format="color|reference" />
+    <attr name="checkTint" format="color|reference" />
+
     <style name="AppTheme" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:windowBackground">@drawable/bg_app</item>
         <item name="android:statusBarColor">@color/sun_bg</item>
         <item name="android:navigationBarColor">@color/sun_bg</item>
-        <item name="android:windowLightStatusBar">true</item>
         <item name="android:colorAccent">@color/sun_orange</item>
         <item name="android:textColorPrimary">@color/ink</item>
         <item name="android:textColorHint">@color/ink_soft</item>
+        <item name="android:buttonStyle">@style/CompactButton</item>
+        <item name="android:spinnerStyle">@style/CompactSpinner</item>
+        <item name="android:checkboxStyle">@style/CompactCheckBox</item>
+        <item name="android:seekBarStyle">@style/CompactSeekBar</item>
+
+        <item name="appBackground">@drawable/bg_app</item>
+        <item name="panelBackground">@drawable/bg_panel</item>
+        <item name="buttonBackground">@drawable/bg_button</item>
+        <item name="modeBackground">@drawable/bg_mode</item>
+        <item name="startBackground">@drawable/bg_start</item>
+        <item name="stopBackground">@drawable/bg_stop</item>
+        <item name="seekTrack">@drawable/seekbar_track</item>
+        <item name="seekThumb">@drawable/seekbar_thumb</item>
+        <item name="seekThumbPressed">@drawable/seekbar_thumb_pressed</item>
+        <item name="textPrimary">@color/ink</item>
+        <item name="textSecondary">@color/ink_soft</item>
+        <item name="textAccent">@color/sun_orange</item>
+        <item name="textMint">@color/mint</item>
+        <item name="textAction">@color/on_primary</item>
+        <item name="barColor">@color/sun_bg</item>
+        <item name="dotOff">@color/dot_off</item>
+        <item name="dotOn">@color/dot_on</item>
+        <item name="dotAccent">@color/dot_accent</item>
+        <item name="dotStroke">@color/outline</item>
+        <item name="checkTint">@color/mint</item>
+    </style>
+
+    <!-- 宋式美学：宣纸底、青瓷线、墨色字、朱砂印，低饱和、细线、小圆角。 -->
+    <style name="SongTheme" parent="AppTheme">
+        <item name="android:windowBackground">@drawable/bg_app_song</item>
+        <item name="android:statusBarColor">@color/song_bg</item>
+        <item name="android:navigationBarColor">@color/song_bg</item>
+        <item name="android:colorAccent">@color/song_accent</item>
+        <item name="android:textColorPrimary">@color/song_ink</item>
+        <item name="android:textColorHint">@color/song_ink_soft</item>
+
+        <item name="appBackground">@drawable/bg_app_song</item>
+        <item name="panelBackground">@drawable/bg_panel_song</item>
+        <item name="buttonBackground">@drawable/bg_button_song</item>
+        <item name="modeBackground">@drawable/bg_mode_song</item>
+        <item name="startBackground">@drawable/bg_start_song</item>
+        <item name="stopBackground">@drawable/bg_stop_song</item>
+        <item name="seekTrack">@drawable/seekbar_track_song</item>
+        <item name="seekThumb">@drawable/seekbar_thumb_song</item>
+        <item name="seekThumbPressed">@drawable/seekbar_thumb_pressed_song</item>
+        <item name="textPrimary">@color/song_ink</item>
+        <item name="textSecondary">@color/song_ink_soft</item>
+        <item name="textAccent">@color/song_accent</item>
+        <item name="textMint">@color/song_jade</item>
+        <item name="textAction">@color/song_on_primary</item>
+        <item name="barColor">@color/song_bg</item>
+        <item name="dotOff">@color/song_dot_off</item>
+        <item name="dotOn">@color/song_dot_on</item>
+        <item name="dotAccent">@color/song_dot_accent</item>
+        <item name="dotStroke">@color/song_outline</item>
+        <item name="checkTint">@color/song_jade</item>
+    </style>
+
+    <!-- Remove the platform's 48dp minimums so the whole control panel fits
+         on one screen without scrolling. -->
+    <style name="CompactButton" parent="@android:style/Widget.Material.Button">
+        <item name="android:minHeight">0dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">4dp</item>
+        <item name="android:paddingEnd">4dp</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+    </style>
+
+    <style name="CompactSpinner" parent="@android:style/Widget.Material.Spinner">
+        <item name="android:minHeight">0dp</item>
+    </style>
+
+    <style name="CompactCheckBox" parent="@android:style/Widget.Material.CompoundButton.CheckBox">
+        <item name="android:minHeight">0dp</item>
+        <item name="android:minWidth">0dp</item>
+    </style>
+
+    <style name="CompactSeekBar" parent="@android:style/Widget.Material.SeekBar">
+        <item name="android:minHeight">0dp</item>
     </style>
 </resources>

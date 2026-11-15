@@ -3,26 +3,26 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingStart="4dp"
-    android:paddingTop="4dp"
-    android:paddingEnd="4dp"
-    android:paddingBottom="4dp">
+    android:paddingStart="2dp"
+    android:paddingTop="2dp"
+    android:paddingEnd="2dp"
+    android:paddingBottom="2dp">
 
     <LinearLayout
+        android:id="@+id/status_card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:background="@drawable/bg_button"
+        android:background="?attr/buttonBackground"
         android:orientation="vertical"
-        android:paddingStart="10dp"
-        android:paddingTop="8dp"
-        android:paddingEnd="10dp"
-        android:paddingBottom="8dp">
+        android:paddingStart="8dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="4dp">
 
         <LinearLayout
             android:id="@+id/beat_dots"
             android:layout_width="match_parent"
-            android:layout_height="28dp"
+            android:layout_height="20dp"
             android:gravity="center"
             android:orientation="horizontal" />
 
@@ -30,29 +30,30 @@
             android:id="@+id/status_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
             android:gravity="center"
+            android:singleLine="true"
             android:text="@string/status_ready"
-            android:textColor="@color/ink_soft"
-            android:textSize="12sp"
+            android:textColor="?attr/textSecondary"
+            android:textSize="11sp"
             android:textStyle="bold" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <Button
             android:id="@+id/bpm_minus"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
-            android:background="@drawable/bg_button"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/buttonBackground"
             android:stateListAnimator="@null"
             android:text="@string/minus"
-            android:textColor="@color/sun_orange"
-            android:textSize="26sp" />
+            android:textColor="?attr/textAccent"
+            android:textSize="22sp" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -67,8 +68,8 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif"
                 android:text="120"
-                android:textColor="@color/sun_orange"
-                android:textSize="52sp"
+                android:textColor="?attr/textAccent"
+                android:textSize="38sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -76,167 +77,166 @@
                 android:layout_height="wrap_content"
                 android:letterSpacing="0.25"
                 android:text="@string/bpm"
-                android:textColor="@color/ink_soft"
-                android:textSize="11sp"
+                android:textColor="?attr/textSecondary"
+                android:textSize="10sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
         <Button
             android:id="@+id/bpm_plus"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
-            android:background="@drawable/bg_button"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/buttonBackground"
             android:stateListAnimator="@null"
             android:text="@string/plus"
-            android:textColor="@color/sun_orange"
-            android:textSize="26sp" />
+            android:textColor="?attr/textAccent"
+            android:textSize="22sp" />
     </LinearLayout>
 
     <SeekBar
         android:id="@+id/bpm_seek"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_height="28dp"
         android:max="200"
         android:progress="80"
-        android:progressDrawable="@drawable/seekbar_track"
-        android:thumb="@drawable/seekbar_thumb" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="@string/presets"
-        android:textColor="@color/ink_soft"
-        android:textSize="12sp"
-        android:textStyle="bold" />
-
-    <HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:scrollbars="none">
-
-        <LinearLayout
-            android:id="@+id/preset_row"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal" />
-    </HorizontalScrollView>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
-        android:text="@string/mode_title"
-        android:textColor="@color/ink_soft"
-        android:textSize="12sp"
-        android:textStyle="bold" />
+        android:progressDrawable="?attr/seekTrack"
+        android:thumb="?attr/seekThumb" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="52dp"
+            android:layout_height="wrap_content"
+            android:text="@string/presets"
+            android:textColor="?attr/textSecondary"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <HorizontalScrollView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/preset_row"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="52dp"
+            android:layout_height="wrap_content"
+            android:text="@string/mode_title"
+            android:textColor="?attr/textSecondary"
+            android:textSize="11sp"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/mode_top"
             android:layout_width="0dp"
-            android:layout_height="46dp"
-            android:layout_marginEnd="4dp"
+            android:layout_height="34dp"
+            android:layout_marginEnd="3dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_mode"
+            android:background="?attr/modeBackground"
             android:stateListAnimator="@null"
             android:text="@string/mode_top"
             android:textAllCaps="false"
-            android:textColor="@color/ink"
-            android:textSize="12sp"
+            android:textColor="?attr/textPrimary"
+            android:textSize="11sp"
             android:textStyle="bold" />
 
         <Button
             android:id="@+id/mode_bottom"
             android:layout_width="0dp"
-            android:layout_height="46dp"
-            android:layout_marginStart="4dp"
-            android:layout_marginEnd="4dp"
+            android:layout_height="34dp"
+            android:layout_marginStart="3dp"
+            android:layout_marginEnd="3dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_mode"
+            android:background="?attr/modeBackground"
             android:stateListAnimator="@null"
             android:text="@string/mode_bottom"
             android:textAllCaps="false"
-            android:textColor="@color/ink"
-            android:textSize="12sp"
+            android:textColor="?attr/textPrimary"
+            android:textSize="11sp"
             android:textStyle="bold" />
 
         <Button
             android:id="@+id/mode_spring"
             android:layout_width="0dp"
-            android:layout_height="46dp"
-            android:layout_marginStart="4dp"
+            android:layout_height="34dp"
+            android:layout_marginStart="3dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_mode"
+            android:background="?attr/modeBackground"
             android:stateListAnimator="@null"
             android:text="@string/mode_spring"
             android:textAllCaps="false"
-            android:textColor="@color/ink"
-            android:textSize="12sp"
+            android:textColor="?attr/textPrimary"
+            android:textSize="11sp"
             android:textStyle="bold" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
+        android:layout_marginTop="4dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <TextView
-            android:layout_width="44dp"
+            android:layout_width="30dp"
             android:layout_height="wrap_content"
             android:text="@string/time_signature"
-            android:textColor="@color/ink_soft"
-            android:textSize="12sp"
+            android:textColor="?attr/textSecondary"
+            android:textSize="11sp"
             android:textStyle="bold" />
 
         <Spinner
             android:id="@+id/time_sig"
             android:layout_width="0dp"
-            android:layout_height="44dp"
+            android:layout_height="34dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_button"
-            android:popupBackground="@drawable/bg_panel"
+            android:background="?attr/buttonBackground"
+            android:popupBackground="?attr/panelBackground"
             android:spinnerMode="dropdown" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
 
         <TextView
-            android:layout_width="44dp"
+            android:layout_width="30dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
             android:text="@string/sound"
-            android:textColor="@color/ink_soft"
-            android:textSize="12sp"
+            android:textColor="?attr/textSecondary"
+            android:textSize="11sp"
             android:textStyle="bold" />
 
         <Spinner
             android:id="@+id/sound_spinner"
             android:layout_width="0dp"
-            android:layout_height="44dp"
+            android:layout_height="34dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_button"
-            android:popupBackground="@drawable/bg_panel"
+            android:background="?attr/buttonBackground"
+            android:popupBackground="?attr/panelBackground"
             android:spinnerMode="dropdown" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="4dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
@@ -244,32 +244,32 @@
             android:id="@+id/accent_toggle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:buttonTint="@color/mint"
+            android:buttonTint="?attr/checkTint"
             android:checked="true"
             android:text="@string/accent"
-            android:textColor="@color/ink"
-            android:textSize="12sp"
+            android:textColor="?attr/textPrimary"
+            android:textSize="11sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="8dp"
             android:text="@string/volume"
-            android:textColor="@color/ink_soft"
-            android:textSize="12sp"
+            android:textColor="?attr/textSecondary"
+            android:textSize="11sp"
             android:textStyle="bold" />
 
         <SeekBar
             android:id="@+id/volume_seek"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_height="28dp"
+            android:layout_marginStart="6dp"
             android:layout_weight="1"
             android:max="100"
             android:progress="80"
-            android:progressDrawable="@drawable/seekbar_track"
-            android:thumb="@drawable/seekbar_thumb" />
+            android:progressDrawable="?attr/seekTrack"
+            android:thumb="?attr/seekThumb" />
     </LinearLayout>
 
 </LinearLayout>

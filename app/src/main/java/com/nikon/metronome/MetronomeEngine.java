@@ -23,7 +23,8 @@ public final class MetronomeEngine {
     private static final String TAG = "MetronomeEngine";
 
     public enum SoundType {
-        PIANO, MECHANICAL, WOODBLOCK, ELECTRONIC;
+        PIANO, MECHANICAL, WOODBLOCK, ELECTRONIC,
+        GUQIN, BELL, CHIME, DRUM, BAMBOO;
 
         public static SoundType fromOrdinal(int ordinal) {
             SoundType[] values = values();
@@ -269,13 +270,13 @@ public final class MetronomeEngine {
                 return;
             }
             try {
+                // Stop first so a repeated play() restarts the static buffer from
+                // the beginning. The PCM is written once at build time and never
+                // changes, so it must NOT be reloaded: reloadStaticData() causes a
+                // native crash on some Android 14+ devices, killing the app after
+                // the first few beats.
                 if (track.getPlayState() != AudioTrack.PLAYSTATE_STOPPED) {
                     track.stop();
-                }
-                // A freshly written static buffer already starts at frame 0;
-                // rewinding it before the first play can mute the first click.
-                if (played[slot]) {
-                    track.reloadStaticData();
                 }
                 track.setVolume(volume * (accent ? 1f : 0.85f));
                 track.play();

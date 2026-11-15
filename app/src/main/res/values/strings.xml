@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">钢琴节拍器</string>
+    <string name="app_name_song">宋韵节拍器</string>
     <string name="subtitle">SUNNY METRONOME · 让每一拍都充满活力</string>
     <string name="bpm">BPM</string>
     <string name="minus">−</string>
@@ -19,8 +20,21 @@
     <string name="presets">常用速度</string>
     <string name="status_ready">准备就绪 · 轻触开始，活力起拍</string>
     <string name="status_running">运行中 · %1$d BPM · %2$s</string>
+    <string name="status_ready_song">静候起拍 · 一拍一韵，清雅自持</string>
+    <string name="status_running_song">行拍中 · %1$d BPM · %2$s</string>
     <string name="status_paused">已停止</string>
+    <string name="theme_follow">跟随</string>
+    <string name="theme_light">亮色</string>
+    <string name="theme_dark">暗色</string>
+    <string name="theme_song">宋韵</string>
+    <string name="subtitle_song">SONG DYNASTY · 一拍一韵，清雅自持</string>
+    <string name="theme_toggle_desc">切换主题：跟随系统、亮色、暗色、宋韵</string>
     <string name="notification_channel">节拍器播放</string>
     <string name="notification_channel_desc">熄屏后继续打拍，可从通知中停止</string>
     <string name="notification_playing">节拍器运行中 · 熄屏后继续播放</string>
+    <string name="style_sunny">阳光木纹</string>
+    <string name="style_song">宋韵青瓷</string>
+    <string name="style_aurora">极光薄荷</string>
+    <string name="style_rose">玫瑰金</string>
+    <string name="style_neon">赛博霓虹</string>
 </resources>

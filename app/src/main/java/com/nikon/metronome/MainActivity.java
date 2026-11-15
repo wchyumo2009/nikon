@@ -9,13 +9,18 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.util.TypedValue;
+import android.view.MotionEvent;
+import android.view.GestureDetector;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -25,6 +30,7 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -34,12 +40,19 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
     private static final int[] PRESETS = {60, 80, 100, 120, 160};
     private static final String[] SIGNATURES = {"2/4", "3/4", "4/4", "6/8"};
     private static final int[] BEATS = {2, 3, 4, 6};
-    private static final String[] SOUND_NAMES = {"钢琴", "机械", "木鱼", "电子"};
+    private static final String[] SOUND_NAMES = {
+            "钢琴", "机械", "木鱼", "电子", "古琴", "编钟", "磬音", "堂鼓", "竹板"
+    };
     private static final MetronomeEngine.SoundType[] SOUND_TYPES = {
             MetronomeEngine.SoundType.PIANO,
             MetronomeEngine.SoundType.MECHANICAL,
             MetronomeEngine.SoundType.WOODBLOCK,
-            MetronomeEngine.SoundType.ELECTRONIC
+            MetronomeEngine.SoundType.ELECTRONIC,
+            MetronomeEngine.SoundType.GUQIN,
+            MetronomeEngine.SoundType.BELL,
+            MetronomeEngine.SoundType.CHIME,
+            MetronomeEngine.SoundType.DRUM,
+            MetronomeEngine.SoundType.BAMBOO
     };
 
     private MetronomeEngine engine;
@@ -52,6 +65,7 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
     private Spinner soundSpinner;
     private CheckBox accentToggle;
     private Button startButton;
+    private Button themeToggle;
     private final Button[] modeButtons = new Button[3];
     private LinearLayout beatDots;
     private LinearLayout presetRow;
@@ -71,6 +85,39 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
     private int tapCount;
 
     private static final int REQ_NOTIFICATIONS = 1;
+    private static final String KEY_THEME = "theme_mode";
+    private static final int THEME_FOLLOW = 0;
+    private static final int THEME_LIGHT = 1;
+    private static final int THEME_DARK = 2;
+    private static final int THEME_SONG = 3;
+    private static final int THEME_COUNT = 4;
+
+    private int themeMode;
+    private boolean themeSwitching;
+
+    private int styleIndex = PendulumView.STYLE_SUNNY;
+    private int accentColor = 0xFF8A3D;
+    private FrameLayout rootContainer;
+    private View pendulumCard;
+    private GestureDetector styleGesture;
+    private static final String KEY_STYLE = "style_index";
+    private static final int[] STYLE_DISPLAY = {
+            R.string.style_sunny, R.string.style_song, R.string.style_aurora,
+            R.string.style_rose, R.string.style_neon
+    };
+    private static final int[][] STYLE_PAGE = {
+            {0xFFF7E4, 0xFFEAF7FF, 0xFFE7FAF0},
+            {0xFFF7F3E8, 0xFFEFECE0, 0xFFE6EFE9},
+            {0xFFE9FBF6, 0xFFD7F3EF, 0xFFE1F4FB},
+            {0xFFFFF1F6, 0xFFFFE4EC, 0xFFFFF5E8},
+            {0xFF0B1020, 0xFF121A33, 0xFF0E1626}
+    };
+    private static final int[] STYLE_ACCENT = {
+            0xFFFF8A3D, 0xFFA6452F, 0xFF12B5A6, 0xFFE5608A, 0xFF29E0E6
+    };
+    private static final int[] STYLE_BAR = {
+            0xFFFFF1DC, 0xFFEFEADB, 0xFFD7F3EF, 0xFFFFE4EC, 0xFF0B1020
+    };
 
     private final BroadcastReceiver stateReceiver = new BroadcastReceiver() {
         @Override
@@ -80,7 +127,27 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
     };
 
     @Override
+    protected void attachBaseContext(Context newBase) {
+        themeMode = newBase.getSharedPreferences(PREFS, MODE_PRIVATE)
+                .getInt(KEY_THEME, THEME_FOLLOW);
+        super.attachBaseContext(newBase);
+        if (themeMode == THEME_FOLLOW) {
+            return;
+        }
+        Configuration override = new Configuration();
+        // The Song palette is rice paper and celadon, always a light surface.
+        int night = themeMode == THEME_DARK
+                ? Configuration.UI_MODE_NIGHT_YES : Configuration.UI_MODE_NIGHT_NO;
+        override.uiMode = (newBase.getResources().getConfiguration().uiMode
+                & ~Configuration.UI_MODE_NIGHT_MASK) | night;
+        applyOverrideConfiguration(override);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if (themeMode == THEME_SONG) {
+            setTheme(R.style.SongTheme);
+        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -92,11 +159,15 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
                 container, true);
 
         loadPrefs();
+        applySystemBars();
         engine = MetronomeService.getEngine(this);
 
         bindViews();
+        applySongChrome();
         buildPresets();
         bindActions();
+        setupStyleGesture();
+        applyStyleChrome();
 
         engine.setBpm(bpm);
         engine.setBeatsPerBar(beatsPerBar);
@@ -137,8 +208,8 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
     @Override
     protected void onDestroy() {
         engine.setListener(null);
-        if (isFinishing()) {
-            // Back really leaves the app; Home / screen off keep playing.
+        if (isFinishing() && !isChangingConfigurations() && !themeSwitching) {
+            // Back really leaves the app; rotation, theme change, Home and screen off keep playing.
             MetronomeService.stopPlayback(this);
         }
         super.onDestroy();
@@ -146,6 +217,8 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
 
     private void bindViews() {
         pendulumView = findViewById(R.id.pendulum_view);
+        rootContainer = findViewById(R.id.root_container);
+        pendulumCard = findViewById(R.id.pendulum_card);
         bpmValue = findViewById(R.id.bpm_value);
         statusText = findViewById(R.id.status_text);
         bpmSeek = findViewById(R.id.bpm_seek);
@@ -154,6 +227,7 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
         soundSpinner = findViewById(R.id.sound_spinner);
         accentToggle = findViewById(R.id.accent_toggle);
         startButton = findViewById(R.id.start_button);
+        themeToggle = findViewById(R.id.theme_toggle);
         beatDots = findViewById(R.id.beat_dots);
         presetRow = findViewById(R.id.preset_row);
         modeButtons[0] = findViewById(R.id.mode_top);
@@ -177,11 +251,11 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
             button.setText(String.valueOf(preset));
             button.setTextSize(13);
             button.setAllCaps(false);
-            button.setTextColor(getColor(R.color.sun_orange));
-            button.setBackgroundResource(R.drawable.bg_button);
+            button.setTextColor(accentColor);
+            button.setBackground(themeDrawable(R.attr.buttonBackground));
             button.setStateListAnimator(null);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(64), dp(40));
-            params.setMargins(0, dp(4), dp(8), 0);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(60), dp(36));
+            params.setMargins(0, dp(4), dp(6), 0);
             button.setLayoutParams(params);
             button.setOnClickListener(v -> setBpm(preset));
             presetRow.addView(button);
@@ -193,6 +267,26 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
         findViewById(R.id.bpm_plus).setOnClickListener(v -> setBpm(bpm + 1));
         findViewById(R.id.start_button).setOnClickListener(v -> toggleMetronome());
         findViewById(R.id.tap_button).setOnClickListener(v -> onTap());
+        themeToggle.setOnClickListener(v -> cycleTheme());
+
+        // The thumb is only slightly larger than the track; grow it while a
+        // finger is down so the touch target is easy to see and hit.
+        View.OnTouchListener thumbGrow = (v, event) -> {
+            if (!(v instanceof SeekBar)) {
+                return false;
+            }
+            SeekBar bar = (SeekBar) v;
+            int action = event.getActionMasked();
+            if (action == MotionEvent.ACTION_DOWN) {
+                bar.setThumb(themeDrawable(R.attr.seekThumbPressed));
+            } else if (action == MotionEvent.ACTION_UP
+                    || action == MotionEvent.ACTION_CANCEL) {
+                bar.setThumb(themeDrawable(R.attr.seekThumb));
+            }
+            return false;
+        };
+        bpmSeek.setOnTouchListener(thumbGrow);
+        volumeSeek.setOnTouchListener(thumbGrow);
 
         bpmSeek.setOnSeekBarChangeListener(new SimpleSeekBarListener() {
             @Override
@@ -306,6 +400,213 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
         refreshUi();
     }
 
+    private void cycleTheme() {
+        themeMode = (themeMode + 1) % THEME_COUNT;
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+                .putInt(KEY_THEME, themeMode).apply();
+        themeSwitching = true;
+        recreate();
+    }
+
+    private String themeLabel() {
+        if (themeMode == THEME_LIGHT) {
+            return getString(R.string.theme_light);
+        }
+        if (themeMode == THEME_DARK) {
+            return getString(R.string.theme_dark);
+        }
+        if (themeMode == THEME_SONG) {
+            return getString(R.string.theme_song);
+        }
+        return getString(R.string.theme_follow);
+    }
+
+    private boolean isSongTheme() {
+        return themeMode == THEME_SONG;
+    }
+
+    private boolean isNightMode() {
+        if (themeMode == THEME_DARK) {
+            return true;
+        }
+        if (themeMode != THEME_FOLLOW) {
+            return false;
+        }
+        return (getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+    }
+
+    private void applySystemBars() {
+        int bar = themeColor(R.attr.barColor);
+        getWindow().setStatusBarColor(bar);
+        getWindow().setNavigationBarColor(bar);
+        View decor = getWindow().getDecorView();
+        int flags = decor.getSystemUiVisibility();
+        flags = isNightMode()
+                ? flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                : flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        decor.setSystemUiVisibility(flags);
+    }
+
+    /** Resolves a theme attribute so dynamically created views follow the palette. */
+    private int themeColor(int attr) {
+        TypedValue value = new TypedValue();
+        if (!getTheme().resolveAttribute(attr, value, true)) {
+            return 0;
+        }
+        return value.resourceId != 0 ? getColor(value.resourceId) : value.data;
+    }
+
+    private Drawable themeDrawable(int attr) {
+        TypedValue value = new TypedValue();
+        if (!getTheme().resolveAttribute(attr, value, true) || value.resourceId == 0) {
+            return null;
+        }
+        return getDrawable(value.resourceId);
+    }
+
+    private void applySongChrome() {
+        boolean song = isSongTheme();
+        applyStyleChrome();
+        TextView title = findViewById(R.id.title);
+        if (title != null) {
+            title.setText(song ? R.string.app_name_song : R.string.app_name);
+        }
+        TextView subtitle = findViewById(R.id.subtitle);
+        if (subtitle != null) {
+            subtitle.setText(song ? R.string.subtitle_song : R.string.subtitle);
+        }
+    }
+
+    /** Left/right swipe on the pendulum switches the metronome style. */
+    private void setupStyleGesture() {
+        styleGesture = new GestureDetector(this,
+                new GestureDetector.SimpleOnGestureListener() {
+                    @Override
+                    public boolean onFling(MotionEvent e1, MotionEvent e2,
+                            float velocityX, float velocityY) {
+                        if (e1 == null || e2 == null) {
+                            return false;
+                        }
+                        float dx = e2.getX() - e1.getX();
+                        float dy = e2.getY() - e1.getY();
+                        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > dp(60)) {
+                            cycleStyle(dx < 0 ? 1 : -1);
+                            return true;
+                        }
+                        return false;
+                    }
+                });
+        pendulumCard.setOnTouchListener((v, e) -> {
+            styleGesture.onTouchEvent(e);
+            return true;
+        });
+    }
+
+    /**
+     * Left/right swipe cycles through ALL five styles, including Song. The
+     * Song look needs the SongTheme resources, so entering or leaving it
+     * recreates the activity; the other styles swap live.
+     */
+    private void cycleStyle(int dir) {
+        int[] order = {PendulumView.STYLE_SUNNY, PendulumView.STYLE_SONG,
+                PendulumView.STYLE_AURORA, PendulumView.STYLE_ROSE,
+                PendulumView.STYLE_NEON};
+        int current = (themeMode == THEME_SONG)
+                ? PendulumView.STYLE_SONG : styleIndex;
+        int idx = 0;
+        for (int i = 0; i < order.length; i++) {
+            if (order[i] == current) {
+                idx = i;
+                break;
+            }
+        }
+        int next = order[(idx + dir + order.length) % order.length];
+        boolean themeChanged = (next == PendulumView.STYLE_SONG)
+                != (themeMode == THEME_SONG);
+        styleIndex = next;
+        if (themeChanged) {
+            themeMode = (next == PendulumView.STYLE_SONG)
+                    ? THEME_SONG : THEME_FOLLOW;
+            SharedPreferences.Editor editor = getSharedPreferences(PREFS, MODE_PRIVATE).edit();
+            editor.putInt(KEY_STYLE, styleIndex).putInt(KEY_THEME, themeMode).apply();
+            Toast.makeText(getApplicationContext(),
+                    getString(STYLE_DISPLAY[next]), Toast.LENGTH_SHORT).show();
+            themeSwitching = true;
+            recreate();
+            return;
+        }
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+                .putInt(KEY_STYLE, styleIndex).apply();
+        applyStyleChrome();
+        Toast.makeText(this, getString(STYLE_DISPLAY[next]),
+                Toast.LENGTH_SHORT).show();
+    }
+
+    /** Applies the active style to the pendulum, page background and accents. */
+    private void applyStyleChrome() {
+        int eff = (themeMode == THEME_SONG) ? PendulumView.STYLE_SONG : styleIndex;
+        pendulumView.setStyle(eff);
+        boolean night = isNightMode();
+        applyPageBackground(eff, night);
+        int bar = night ? 0x14202F : STYLE_BAR[eff];
+        getWindow().setStatusBarColor(bar);
+        getWindow().setNavigationBarColor(bar);
+        View decor = getWindow().getDecorView();
+        int flags = decor.getSystemUiVisibility();
+        boolean darkPage = (eff == PendulumView.STYLE_NEON) || night;
+        flags = darkPage
+                ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
+                : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+        decor.setSystemUiVisibility(flags);
+        accentColor = STYLE_ACCENT[eff];
+        TextView title = findViewById(R.id.title);
+        TextView subtitle = findViewById(R.id.subtitle);
+        if (title != null) {
+            title.setTextColor(darkPage ? 0xFFFFFFFF : themeColor(R.attr.textPrimary));
+        }
+        if (subtitle != null) {
+            subtitle.setTextColor(darkPage ? 0xCCFFFFFF : themeColor(R.attr.textSecondary));
+        }
+        rebuildDots();
+        refreshPresetColors();
+    }
+
+    private void applyPageBackground(int style, boolean night) {
+        if (night) {
+            rootContainer.setBackground(themeDrawable(R.attr.appBackground));
+            return;
+        }
+        int[] g = STYLE_PAGE[style];
+        GradientDrawable d = new GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM, new int[]{g[0], g[1], g[2]});
+        rootContainer.setBackground(d);
+    }
+
+    private void refreshPresetColors() {
+        for (int i = 0; i < presetRow.getChildCount(); i++) {
+            View child = presetRow.getChildAt(i);
+            if (child instanceof Button) {
+                ((Button) child).setTextColor(accentColor);
+            }
+        }
+    }
+
+    private static int darkenColor(int color, float f) {
+        int r = (int) (((color >> 16) & 0xFF) * f);
+        int g = (int) (((color >> 8) & 0xFF) * f);
+        int b = (int) ((color & 0xFF) * f);
+        return (color & 0xFF000000) | (r << 16) | (g << 8) | b;
+    }
+
+    private void updateKeepScreenOn() {
+        if (engine.isRunning()) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        } else {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+    }
+
     private void ensureNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
@@ -349,10 +650,10 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
             GradientDrawable drawable = (GradientDrawable) dot.getBackground();
             int color;
             if (i == beatInBar) {
-                color = getColor(accent && accentBeat
-                        ? R.color.dot_accent : R.color.dot_on);
+                color = (accent && accentBeat)
+                        ? darkenColor(accentColor, 0.78f) : accentColor;
             } else {
-                color = getColor(R.color.dot_off);
+                color = themeColor(R.attr.dotOff);
             }
             drawable.setColor(color);
             dot.invalidate();
@@ -389,8 +690,11 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
 
         boolean running = engine.isRunning();
         startButton.setText(running ? R.string.stop : R.string.start);
-        startButton.setBackgroundResource(running ? R.drawable.bg_stop : R.drawable.bg_start);
-        startButton.setTextColor(getColor(running ? R.color.on_sun : R.color.ink));
+        startButton.setBackground(themeDrawable(
+                running ? R.attr.stopBackground : R.attr.startBackground));
+        startButton.setTextColor(themeColor(R.attr.textAction));
+        themeToggle.setText(themeLabel());
+        updateKeepScreenOn();
         updateStatus();
         pendulumView.onEngineStateChanged();
     }
@@ -400,8 +704,7 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
         for (int i = 0; i < modeButtons.length; i++) {
             boolean selected = values[i] == mode;
             modeButtons[i].setSelected(selected);
-            modeButtons[i].setTextColor(getColor(selected
-                    ? R.color.ink : R.color.ink_soft));
+            modeButtons[i].setTextColor(themeColor(R.attr.textPrimary));
         }
     }
 
@@ -413,8 +716,8 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
             View dot = new View(this);
             GradientDrawable drawable = new GradientDrawable();
             drawable.setShape(GradientDrawable.OVAL);
-            drawable.setColor(getColor(R.color.dot_off));
-            drawable.setStroke(dp(1), getColor(R.color.outline));
+            drawable.setColor(themeColor(R.attr.dotOff));
+            drawable.setStroke(dp(1), themeColor(R.attr.dotStroke));
             dot.setBackground(drawable);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(size, size);
             params.setMargins(dp(5), 0, dp(5), 0);
@@ -424,9 +727,13 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
     }
 
     private void updateStatus() {
-        statusText.setText(engine.isRunning()
-                ? getString(R.string.status_running, bpm, signatureOf(beatsPerBar))
-                : getString(R.string.status_ready));
+        boolean song = isSongTheme();
+        if (engine.isRunning()) {
+            statusText.setText(getString(song ? R.string.status_running_song : R.string.status_running,
+                    bpm, signatureOf(beatsPerBar)));
+        } else {
+            statusText.setText(getString(song ? R.string.status_ready_song : R.string.status_ready));
+        }
     }
 
     private static int indexOfBeat(int beats) {
@@ -452,6 +759,8 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
         mode = PendulumMode.fromOrdinal(prefs.getInt("mode", PendulumMode.BOTTOM.ordinal()));
         soundType = MetronomeEngine.SoundType.fromOrdinal(
                 prefs.getInt("sound", MetronomeEngine.SoundType.PIANO.ordinal()));
+        themeMode = prefs.getInt(KEY_THEME, THEME_FOLLOW);
+        styleIndex = prefs.getInt(KEY_STYLE, PendulumView.STYLE_SUNNY);
     }
 
     private void savePrefs() {

@@ -4,32 +4,31 @@
         <shape android:shape="rectangle">
             <gradient
                 android:angle="270"
-                android:centerColor="#EAF7FF"
-                android:endColor="#E7FAF0"
-                android:startColor="#FFF7E4" />
+                android:centerColor="@color/bg_grad_center"
+                android:endColor="@color/bg_grad_end"
+                android:startColor="@color/bg_grad_start" />
         </shape>
     </item>
-    <item
-        android:gravity="top|end"
-        android:height="240dp"
-        android:right="-70dp"
-        android:top="-80dp"
-        android:width="240dp">
-        <shape android:shape="oval">
+    <item>
+        <shape android:shape="rectangle">
             <gradient
-                android:angle="270"
-                android:endColor="#00FFD66B"
-                android:startColor="#66FFD66B" />
+                android:centerX="0.88"
+                android:centerY="0.06"
+                android:endColor="@color/glow_sun_end"
+                android:gradientRadius="700dp"
+                android:startColor="@color/glow_sun_start"
+                android:type="radial" />
         </shape>
     </item>
-    <item
-        android:bottom="-110dp"
-        android:gravity="bottom|start"
-        android:height="280dp"
-        android:left="-80dp"
-        android:width="280dp">
-        <shape android:shape="oval">
-            <solid android:color="#224C9AFF" />
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:centerX="0.05"
+                android:centerY="0.95"
+                android:endColor="@color/glow_sky_end"
+                android:gradientRadius="650dp"
+                android:startColor="@color/glow_sky_start"
+                android:type="radial" />
         </shape>
     </item>
 </layer-list>

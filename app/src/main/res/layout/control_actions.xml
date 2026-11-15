@@ -3,38 +3,38 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:paddingStart="4dp"
-    android:paddingTop="10dp"
-    android:paddingEnd="4dp"
-    android:paddingBottom="4dp">
+    android:paddingStart="2dp"
+    android:paddingTop="4dp"
+    android:paddingEnd="2dp"
+    android:paddingBottom="2dp">
 
     <Button
         android:id="@+id/tap_button"
         android:layout_width="0dp"
-        android:layout_height="58dp"
+        android:layout_height="52dp"
         android:layout_weight="1"
-        android:background="@drawable/bg_button"
+        android:background="?attr/buttonBackground"
         android:stateListAnimator="@null"
         android:text="@string/tap"
         android:textAllCaps="false"
-        android:textColor="@color/mint"
+        android:textColor="?attr/textMint"
         android:textSize="14sp"
         android:textStyle="bold" />
 
     <Space
-        android:layout_width="12dp"
+        android:layout_width="10dp"
         android:layout_height="1dp" />
 
     <Button
         android:id="@+id/start_button"
         android:layout_width="0dp"
-        android:layout_height="58dp"
+        android:layout_height="52dp"
         android:layout_weight="1.4"
-        android:background="@drawable/bg_start"
+        android:background="?attr/startBackground"
         android:stateListAnimator="@null"
         android:text="@string/start"
         android:textAllCaps="false"
-        android:textColor="@color/ink"
+        android:textColor="?attr/textAction"
         android:textSize="19sp"
         android:textStyle="bold" />
 </LinearLayout>

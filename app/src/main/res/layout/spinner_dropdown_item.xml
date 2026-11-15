@@ -3,11 +3,11 @@
     android:id="@android:id/text1"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_panel"
+    android:background="?attr/panelBackground"
     android:gravity="center_vertical"
     android:paddingStart="12dp"
     android:paddingTop="12dp"
     android:paddingEnd="12dp"
     android:paddingBottom="12dp"
-    android:textColor="@color/ink"
+    android:textColor="?attr/textPrimary"
     android:textSize="15sp" />
