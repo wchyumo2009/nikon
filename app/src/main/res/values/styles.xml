@@ -88,6 +88,37 @@
         <item name="checkTint">@color/song_jade</item>
     </style>
 
+    <!-- 阴阳太极：宣纸底、水墨字、青玉点缀，圆润卡片呼应太极圆弧。 -->
+    <style name="TaijiTheme" parent="AppTheme">
+        <item name="android:windowBackground">@drawable/bg_app_taiji</item>
+        <item name="android:statusBarColor">@color/taiji_bg</item>
+        <item name="android:navigationBarColor">@color/taiji_bg</item>
+        <item name="android:colorAccent">@color/taiji_accent</item>
+        <item name="android:textColorPrimary">@color/taiji_ink</item>
+        <item name="android:textColorHint">@color/taiji_ink_soft</item>
+
+        <item name="appBackground">@drawable/bg_app_taiji</item>
+        <item name="panelBackground">@drawable/bg_panel_taiji</item>
+        <item name="buttonBackground">@drawable/bg_button_taiji</item>
+        <item name="modeBackground">@drawable/bg_mode_taiji</item>
+        <item name="startBackground">@drawable/bg_start_taiji</item>
+        <item name="stopBackground">@drawable/bg_stop_taiji</item>
+        <item name="seekTrack">@drawable/seekbar_track_taiji</item>
+        <item name="seekThumb">@drawable/seekbar_thumb_taiji</item>
+        <item name="seekThumbPressed">@drawable/seekbar_thumb_pressed_taiji</item>
+        <item name="textPrimary">@color/taiji_ink</item>
+        <item name="textSecondary">@color/taiji_ink_soft</item>
+        <item name="textAccent">@color/taiji_accent</item>
+        <item name="textMint">@color/taiji_jade</item>
+        <item name="textAction">@color/taiji_on_primary</item>
+        <item name="barColor">@color/taiji_bg</item>
+        <item name="dotOff">@color/taiji_dot_off</item>
+        <item name="dotOn">@color/taiji_dot_on</item>
+        <item name="dotAccent">@color/taiji_dot_accent</item>
+        <item name="dotStroke">@color/taiji_outline</item>
+        <item name="checkTint">@color/taiji_jade</item>
+    </style>
+
     <!-- Remove the platform's 48dp minimums so the whole control panel fits
          on one screen without scrolling. -->
     <style name="CompactButton" parent="@android:style/Widget.Material.Button">

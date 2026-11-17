@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <size android:width="20dp" android:height="20dp" />
+    <gradient android:angle="270" android:endColor="@color/taiji_thumb_end" android:startColor="@color/taiji_thumb_start" />
+    <stroke android:width="2dp" android:color="@color/taiji_jade" />
+</shape>

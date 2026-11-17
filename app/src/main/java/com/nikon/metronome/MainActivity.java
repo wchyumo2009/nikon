@@ -60,7 +60,6 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
     private TextView bpmValue;
     private TextView statusText;
     private SeekBar bpmSeek;
-    private SeekBar volumeSeek;
     private Spinner timeSigSpinner;
     private Spinner soundSpinner;
     private CheckBox accentToggle;
@@ -74,7 +73,6 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
 
     private int bpm = 120;
     private int beatsPerBar = 4;
-    private int volume = 80;
     private boolean accent = true;
     private PendulumMode mode = PendulumMode.BOTTOM;
     private MetronomeEngine.SoundType soundType = MetronomeEngine.SoundType.PIANO;
@@ -90,7 +88,8 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
     private static final int THEME_LIGHT = 1;
     private static final int THEME_DARK = 2;
     private static final int THEME_SONG = 3;
-    private static final int THEME_COUNT = 4;
+    private static final int THEME_TAIJI = 4;
+    private static final int THEME_COUNT = 5;
 
     private int themeMode;
     private boolean themeSwitching;
@@ -103,20 +102,23 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
     private static final String KEY_STYLE = "style_index";
     private static final int[] STYLE_DISPLAY = {
             R.string.style_sunny, R.string.style_song, R.string.style_aurora,
-            R.string.style_rose, R.string.style_neon
+            R.string.style_rose, R.string.style_neon, R.string.style_taiji
     };
     private static final int[][] STYLE_PAGE = {
             {0xFFF7E4, 0xFFEAF7FF, 0xFFE7FAF0},
             {0xFFF7F3E8, 0xFFEFECE0, 0xFFE6EFE9},
             {0xFFE9FBF6, 0xFFD7F3EF, 0xFFE1F4FB},
             {0xFFFFF1F6, 0xFFFFE4EC, 0xFFFFF5E8},
-            {0xFF0B1020, 0xFF121A33, 0xFF0E1626}
+            {0xFF0B1020, 0xFF121A33, 0xFF0E1626},
+            {0xFFF6F4EC, 0xFFEBEFE7, 0xFFDDE6DC}
     };
     private static final int[] STYLE_ACCENT = {
-            0xFFFF8A3D, 0xFFA6452F, 0xFF12B5A6, 0xFFE5608A, 0xFF29E0E6
+            0xFFFF8A3D, 0xFFA6452F, 0xFF12B5A6, 0xFFE5608A, 0xFF29E0E6,
+            0xFF2F3B38
     };
     private static final int[] STYLE_BAR = {
-            0xFFFFF1DC, 0xFFEFEADB, 0xFFD7F3EF, 0xFFFFE4EC, 0xFF0B1020
+            0xFFFFF1DC, 0xFFEFEADB, 0xFFD7F3EF, 0xFFFFE4EC, 0xFF0B1020,
+            0xFFEDEFE8
     };
 
     private final BroadcastReceiver stateReceiver = new BroadcastReceiver() {
@@ -135,7 +137,7 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
             return;
         }
         Configuration override = new Configuration();
-        // The Song palette is rice paper and celadon, always a light surface.
+        // Song and Taiji palettes are both light surfaces (rice paper / ink wash).
         int night = themeMode == THEME_DARK
                 ? Configuration.UI_MODE_NIGHT_YES : Configuration.UI_MODE_NIGHT_NO;
         override.uiMode = (newBase.getResources().getConfiguration().uiMode
@@ -147,6 +149,8 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
     protected void onCreate(Bundle savedInstanceState) {
         if (themeMode == THEME_SONG) {
             setTheme(R.style.SongTheme);
+        } else if (themeMode == THEME_TAIJI) {
+            setTheme(R.style.TaijiTheme);
         }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -163,7 +167,7 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
         engine = MetronomeService.getEngine(this);
 
         bindViews();
-        applySongChrome();
+        applyThemeChrome();
         buildPresets();
         bindActions();
         setupStyleGesture();
@@ -171,7 +175,6 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
 
         engine.setBpm(bpm);
         engine.setBeatsPerBar(beatsPerBar);
-        engine.setVolume(volume / 100f);
         engine.setAccentEnabled(accent);
         engine.setSoundType(soundType);
         pendulumView.attach(engine);
@@ -222,7 +225,6 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
         bpmValue = findViewById(R.id.bpm_value);
         statusText = findViewById(R.id.status_text);
         bpmSeek = findViewById(R.id.bpm_seek);
-        volumeSeek = findViewById(R.id.volume_seek);
         timeSigSpinner = findViewById(R.id.time_sig);
         soundSpinner = findViewById(R.id.sound_spinner);
         accentToggle = findViewById(R.id.accent_toggle);
@@ -286,24 +288,12 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
             return false;
         };
         bpmSeek.setOnTouchListener(thumbGrow);
-        volumeSeek.setOnTouchListener(thumbGrow);
 
         bpmSeek.setOnSeekBarChangeListener(new SimpleSeekBarListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (!suppress) {
                     setBpm(MetronomeEngine.MIN_BPM + progress);
-                }
-            }
-        });
-
-        volumeSeek.setOnSeekBarChangeListener(new SimpleSeekBarListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (!suppress) {
-                    volume = progress;
-                    engine.setVolume(volume / 100f);
-                    savePrefs();
                 }
             }
         });
@@ -401,9 +391,14 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
     }
 
     private void cycleTheme() {
+        int leavingStyle = (themeMode == THEME_SONG) ? PendulumView.STYLE_SONG
+                : (themeMode == THEME_TAIJI) ? PendulumView.STYLE_TAIJI : -1;
         themeMode = (themeMode + 1) % THEME_COUNT;
+        if (leavingStyle >= 0 && styleIndex == leavingStyle) {
+            styleIndex = PendulumView.STYLE_SUNNY;
+        }
         getSharedPreferences(PREFS, MODE_PRIVATE).edit()
-                .putInt(KEY_THEME, themeMode).apply();
+                .putInt(KEY_THEME, themeMode).putInt(KEY_STYLE, styleIndex).apply();
         themeSwitching = true;
         recreate();
     }
@@ -418,11 +413,18 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
         if (themeMode == THEME_SONG) {
             return getString(R.string.theme_song);
         }
+        if (themeMode == THEME_TAIJI) {
+            return getString(R.string.theme_taiji);
+        }
         return getString(R.string.theme_follow);
     }
 
     private boolean isSongTheme() {
         return themeMode == THEME_SONG;
+    }
+
+    private boolean isTaijiTheme() {
+        return themeMode == THEME_TAIJI;
     }
 
     private boolean isNightMode() {
@@ -465,16 +467,17 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
         return getDrawable(value.resourceId);
     }
 
-    private void applySongChrome() {
-        boolean song = isSongTheme();
+    private void applyThemeChrome() {
         applyStyleChrome();
         TextView title = findViewById(R.id.title);
         if (title != null) {
-            title.setText(song ? R.string.app_name_song : R.string.app_name);
+            title.setText(isSongTheme() ? R.string.app_name_song
+                    : isTaijiTheme() ? R.string.app_name_taiji : R.string.app_name);
         }
         TextView subtitle = findViewById(R.id.subtitle);
         if (subtitle != null) {
-            subtitle.setText(song ? R.string.subtitle_song : R.string.subtitle);
+            subtitle.setText(isSongTheme() ? R.string.subtitle_song
+                    : isTaijiTheme() ? R.string.subtitle_taiji : R.string.subtitle);
         }
     }
 
@@ -504,16 +507,16 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
     }
 
     /**
-     * Left/right swipe cycles through ALL five styles, including Song. The
-     * Song look needs the SongTheme resources, so entering or leaving it
+     * Left/right swipe cycles through ALL six styles, including Song and Taiji.
+     * Those two need dedicated resource themes, so entering or leaving them
      * recreates the activity; the other styles swap live.
      */
     private void cycleStyle(int dir) {
         int[] order = {PendulumView.STYLE_SUNNY, PendulumView.STYLE_SONG,
                 PendulumView.STYLE_AURORA, PendulumView.STYLE_ROSE,
-                PendulumView.STYLE_NEON};
-        int current = (themeMode == THEME_SONG)
-                ? PendulumView.STYLE_SONG : styleIndex;
+                PendulumView.STYLE_NEON, PendulumView.STYLE_TAIJI};
+        int current = (themeMode == THEME_SONG) ? PendulumView.STYLE_SONG
+                : (themeMode == THEME_TAIJI) ? PendulumView.STYLE_TAIJI : styleIndex;
         int idx = 0;
         for (int i = 0; i < order.length; i++) {
             if (order[i] == current) {
@@ -522,12 +525,15 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
             }
         }
         int next = order[(idx + dir + order.length) % order.length];
-        boolean themeChanged = (next == PendulumView.STYLE_SONG)
-                != (themeMode == THEME_SONG);
+        int nextTheme = next == PendulumView.STYLE_SONG ? THEME_SONG
+                : next == PendulumView.STYLE_TAIJI ? THEME_TAIJI
+                : THEME_FOLLOW;
+        boolean themeChanged = themeMode != nextTheme
+                && ((themeMode == THEME_SONG || themeMode == THEME_TAIJI)
+                || nextTheme != THEME_FOLLOW);
         styleIndex = next;
         if (themeChanged) {
-            themeMode = (next == PendulumView.STYLE_SONG)
-                    ? THEME_SONG : THEME_FOLLOW;
+            themeMode = nextTheme;
             SharedPreferences.Editor editor = getSharedPreferences(PREFS, MODE_PRIVATE).edit();
             editor.putInt(KEY_STYLE, styleIndex).putInt(KEY_THEME, themeMode).apply();
             Toast.makeText(getApplicationContext(),
@@ -545,8 +551,15 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
 
     /** Applies the active style to the pendulum, page background and accents. */
     private void applyStyleChrome() {
-        int eff = (themeMode == THEME_SONG) ? PendulumView.STYLE_SONG : styleIndex;
+        int eff = (themeMode == THEME_SONG) ? PendulumView.STYLE_SONG
+                : (themeMode == THEME_TAIJI) ? PendulumView.STYLE_TAIJI : styleIndex;
         pendulumView.setStyle(eff);
+        // Taiji only rotates the disc, so the swing-mode choices do not apply.
+        boolean modesDisabled = eff == PendulumView.STYLE_TAIJI;
+        for (Button modeButton : modeButtons) {
+            modeButton.setEnabled(!modesDisabled);
+            modeButton.setAlpha(modesDisabled ? 0.45f : 1f);
+        }
         boolean night = isNightMode();
         applyPageBackground(eff, night);
         int bar = night ? 0x14202F : STYLE_BAR[eff];
@@ -560,13 +573,16 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
                 : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         decor.setSystemUiVisibility(flags);
         accentColor = STYLE_ACCENT[eff];
+        boolean inkPage = eff == PendulumView.STYLE_TAIJI;
         TextView title = findViewById(R.id.title);
         TextView subtitle = findViewById(R.id.subtitle);
         if (title != null) {
-            title.setTextColor(darkPage ? 0xFFFFFFFF : themeColor(R.attr.textPrimary));
+            title.setTextColor(darkPage ? 0xFFFFFFFF
+                    : inkPage ? 0xFF232E2A : themeColor(R.attr.textPrimary));
         }
         if (subtitle != null) {
-            subtitle.setTextColor(darkPage ? 0xCCFFFFFF : themeColor(R.attr.textSecondary));
+            subtitle.setTextColor(darkPage ? 0xCCFFFFFF
+                    : inkPage ? 0xFF6B7C71 : themeColor(R.attr.textSecondary));
         }
         rebuildDots();
         refreshPresetColors();
@@ -679,7 +695,6 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
         suppress = true;
         bpmValue.setText(String.valueOf(bpm));
         bpmSeek.setProgress(bpm - MetronomeEngine.MIN_BPM);
-        volumeSeek.setProgress(volume);
         accentToggle.setChecked(accent);
         timeSigSpinner.setSelection(indexOfBeat(beatsPerBar));
         soundSpinner.setSelection(soundType.ordinal());
@@ -728,11 +743,15 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
 
     private void updateStatus() {
         boolean song = isSongTheme();
+        boolean taiji = isTaijiTheme();
         if (engine.isRunning()) {
-            statusText.setText(getString(song ? R.string.status_running_song : R.string.status_running,
-                    bpm, signatureOf(beatsPerBar)));
+            int res = song ? R.string.status_running_song
+                    : taiji ? R.string.status_running_taiji : R.string.status_running;
+            statusText.setText(getString(res, bpm, signatureOf(beatsPerBar)));
         } else {
-            statusText.setText(getString(song ? R.string.status_ready_song : R.string.status_ready));
+            int res = song ? R.string.status_ready_song
+                    : taiji ? R.string.status_ready_taiji : R.string.status_ready;
+            statusText.setText(getString(res));
         }
     }
 
@@ -754,7 +773,6 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
         SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
         bpm = prefs.getInt("bpm", 120);
         beatsPerBar = prefs.getInt("beats", 4);
-        volume = prefs.getInt("volume", 80);
         accent = prefs.getBoolean("accent", true);
         mode = PendulumMode.fromOrdinal(prefs.getInt("mode", PendulumMode.BOTTOM.ordinal()));
         soundType = MetronomeEngine.SoundType.fromOrdinal(
@@ -767,7 +785,6 @@ public class MainActivity extends Activity implements MetronomeEngine.BeatListen
         getSharedPreferences(PREFS, MODE_PRIVATE).edit()
                 .putInt("bpm", bpm)
                 .putInt("beats", beatsPerBar)
-                .putInt("volume", volume)
                 .putBoolean("accent", accent)
                 .putInt("mode", mode.ordinal())
                 .putInt("sound", soundType.ordinal())

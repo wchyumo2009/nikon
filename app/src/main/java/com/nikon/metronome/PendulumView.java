@@ -44,19 +44,25 @@ public class PendulumView extends View {
     public static final int STYLE_AURORA = 2;
     public static final int STYLE_ROSE = 3;
     public static final int STYLE_NEON = 4;
-    public static final int STYLE_COUNT = 5;
+    public static final int STYLE_TAIJI = 5;
+    public static final int STYLE_COUNT = 6;
+
+    private static final int TAIJI_INK = 0xFF232E2A;
+    private static final int TAIJI_RICE = 0xFFF7F4EA;
 
     private int styleIndex = STYLE_SUNNY;
     private int userStyle = STYLE_SUNNY;
+    private float taijiAngle;
 
     private static final String[] STYLE_LABELS = {
-            "SUNNY BEAT", "宋韵", "AURORA", "ROSE GOLD", "NEON"
+            "SUNNY BEAT", "宋韵", "AURORA", "ROSE GOLD", "NEON", "太极"
     };
 
     private static final SparseIntArray SONG_COLORS = new SparseIntArray();
     private static final SparseIntArray AURORA_COLORS;
     private static final SparseIntArray ROSE_COLORS;
     private static final SparseIntArray NEON_COLORS;
+    private static final SparseIntArray TAIJI_COLORS;
 
     static {
         // Warm sunny colour -> Song palette: rice paper, celadon, ink, cinnabar.
@@ -112,6 +118,33 @@ public class PendulumView extends View {
         AURORA_COLORS = buildHueRotatedMap(120, 1.10f, 1.02f, false);
         ROSE_COLORS = buildHueRotatedMap(-20, 0.85f, 1.06f, false);
         NEON_COLORS = buildHueRotatedMap(200, 1.30f, 0.95f, true);
+        TAIJI_COLORS = buildInkMap();
+    }
+
+    /** Ink-wash reinterpretation: rice paper, pale jade and deep ink. */
+    private static SparseIntArray buildInkMap() {
+        SparseIntArray map = new SparseIntArray();
+        for (int i = 0; i < SONG_COLORS.size(); i++) {
+            int key = SONG_COLORS.keyAt(i);
+            map.put(key, inkTone(key));
+        }
+        return map;
+    }
+
+    private static int inkTone(int color) {
+        int a = (color >>> 24) & 0xFF;
+        int r = (color >> 16) & 0xFF;
+        int g = (color >> 8) & 0xFF;
+        int b = color & 0xFF;
+        float lum = (0.299f * r + 0.587f * g + 0.114f * b) / 255f;
+        int rgb;
+        if (lum > 0.80f) rgb = 0xFBF8F0;
+        else if (lum > 0.65f) rgb = 0xE3E8DE;
+        else if (lum > 0.50f) rgb = 0xB9CFC2;
+        else if (lum > 0.35f) rgb = 0x6E8F82;
+        else if (lum > 0.18f) rgb = 0x3C4A44;
+        else rgb = 0x232E2A;
+        return (a << 24) | rgb;
     }
 
     private int tone(int sunColor) {
@@ -124,6 +157,8 @@ public class PendulumView extends View {
                 return ROSE_COLORS.get(sunColor, sunColor);
             case STYLE_NEON:
                 return NEON_COLORS.get(sunColor, sunColor);
+            case STYLE_TAIJI:
+                return TAIJI_COLORS.get(sunColor, sunColor);
             default:
                 return sunColor;
         }
@@ -239,6 +274,8 @@ public class PendulumView extends View {
     private float plateBottom;
     private float plateTopHalf;
     private float plateBotHalf;
+    private float taijiCy;
+    private float taijiDiscR;
 
     public PendulumView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -300,6 +337,19 @@ public class PendulumView extends View {
         }
 
         computeGeometry(w, h);
+
+        boolean running = engine != null && engine.isRunning();
+        double phase = running ? engine.getBeatPhase() : 0;
+
+        if (styleIndex == STYLE_TAIJI) {
+            drawTaijiMoving(canvas, phase, running);
+            wasRunning = running;
+            if (running) {
+                postInvalidateOnAnimation();
+            }
+            return;
+        }
+
         if (cacheDirty || staticLayer == null || staticLayer.getWidth() != w
                 || staticLayer.getHeight() != h) {
             buildStaticLayer(w, h);
@@ -308,8 +358,6 @@ public class PendulumView extends View {
             canvas.drawBitmap(staticLayer, 0, 0, null);
         }
 
-        boolean running = engine != null && engine.isRunning();
-        double phase = running ? engine.getBeatPhase() : 0;
         float maxAngle = mode == PendulumMode.SPRING ? 12f
                 : mode == PendulumMode.TOP ? 22f : 24f;
 
@@ -372,6 +420,10 @@ public class PendulumView extends View {
         plateBottom = bodyBottom - bodyH * 0.20f;
         plateTopHalf = topHalf * 0.50f;
         plateBotHalf = botHalf * 0.32f;
+
+        // Taiji is the only element in this style: centre it in the card.
+        taijiCy = h / 2f;
+        taijiDiscR = Math.min(w, h) * 0.40f;
     }
 
     private void buildStaticLayer(int w, int h) {
@@ -674,6 +726,55 @@ public class PendulumView extends View {
         textPaint.setTextSize(plateH * 0.48f);
         textPaint.setColor(tone(0xFF7A3B0A));
         c.drawText(STYLE_LABELS[styleIndex], cx, y + plateH * 0.20f, textPaint);
+    }
+
+    /**
+     * The yin-yang disc turns half a revolution on every beat. The engine's
+     * continuous beat phase keeps the rotation locked to the audible click;
+     * wrapping at two beats returns to the identical 360-degree orientation,
+     * so there is no visible jump at the loop point.
+     */
+    private void drawTaijiMoving(Canvas c, double phase, boolean running) {
+        if (running) {
+            taijiAngle = (float) (180.0 * (phase % 2.0));
+        } else if (wasRunning) {
+            taijiAngle = Math.round(taijiAngle / 180f) * 180f;
+        }
+        c.save();
+        c.rotate(taijiAngle, cx, taijiCy);
+        drawTaijiDisc(c);
+        c.restore();
+    }
+
+    private void drawTaijiDisc(Canvas c) {
+        float r = taijiDiscR;
+        float smallR = r / 2f;
+        float dotR = r / 8f;
+
+        paint.reset();
+        paint.setAntiAlias(true);
+        paint.setStyle(Paint.Style.FILL);
+
+        paint.setColor(TAIJI_RICE);
+        c.drawCircle(cx, taijiCy, r, paint);
+
+        paint.setColor(TAIJI_INK);
+        c.drawArc(new RectF(cx - r, taijiCy - r, cx + r, taijiCy + r),
+                90f, 180f, true, paint);
+
+        c.drawCircle(cx, taijiCy - smallR, smallR, paint);
+        paint.setColor(TAIJI_RICE);
+        c.drawCircle(cx, taijiCy + smallR, smallR, paint);
+
+        paint.setColor(TAIJI_RICE);
+        c.drawCircle(cx, taijiCy - smallR, dotR, paint);
+        paint.setColor(TAIJI_INK);
+        c.drawCircle(cx, taijiCy + smallR, dotR, paint);
+
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(Math.max(1f, r * 0.006f));
+        paint.setColor(TAIJI_INK);
+        c.drawCircle(cx, taijiCy, r, paint);
     }
 
     private void drawMovingParts(Canvas c, float angle, double phase, boolean running) {

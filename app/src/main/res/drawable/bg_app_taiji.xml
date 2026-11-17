@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:centerColor="@color/taiji_bg_center"
+                android:endColor="@color/taiji_bg_end"
+                android:startColor="@color/taiji_bg_start" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:centerX="0.82"
+                android:centerY="0.12"
+                android:endColor="@color/taiji_glow_end"
+                android:gradientRadius="640dp"
+                android:startColor="@color/taiji_glow_start"
+                android:type="radial" />
+        </shape>
+    </item>
+</layer-list>

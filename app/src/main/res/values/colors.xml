@@ -81,4 +81,39 @@
     <color name="song_track_progress_end">#8E3B28</color>
     <color name="song_thumb_start">#FBF8F0</color>
     <color name="song_thumb_end">#B9D2C9</color>
+
+    <!-- 阴阳太极：宣纸白、水墨黑、青玉绿 -->
+    <color name="taiji_bg">#EDEFE8</color>
+    <color name="taiji_bg_start">#F6F4EC</color>
+    <color name="taiji_bg_center">#EBEFE7</color>
+    <color name="taiji_bg_end">#DDE6DC</color>
+    <color name="taiji_glow_start">#225E8C7C</color>
+    <color name="taiji_glow_end">#005E8C7C</color>
+    <color name="taiji_card_start">#FBFAF4</color>
+    <color name="taiji_card_end">#F0F3EA</color>
+    <color name="taiji_outline">#C8D3C6</color>
+    <color name="taiji_chip_stroke">#A8BCA9</color>
+    <color name="taiji_button_start">#FBFAF4</color>
+    <color name="taiji_button_end">#F0F3EA</color>
+    <color name="taiji_button_pressed_start">#DDE5D8</color>
+    <color name="taiji_button_pressed_end">#C6D3C4</color>
+    <color name="taiji_mode_selected_start">#C6D8C8</color>
+    <color name="taiji_mode_selected_end">#8FAE98</color>
+    <color name="taiji_start_start">#3C4A44</color>
+    <color name="taiji_start_end">#1F2B26</color>
+    <color name="taiji_stop_start">#7C8C80</color>
+    <color name="taiji_stop_end">#55645A</color>
+    <color name="taiji_ink">#232E2A</color>
+    <color name="taiji_ink_soft">#6B7C71</color>
+    <color name="taiji_accent">#2F3B38</color>
+    <color name="taiji_jade">#5E8C7C</color>
+    <color name="taiji_on_primary">#F7F4EA</color>
+    <color name="taiji_dot_off">#C8D3C6</color>
+    <color name="taiji_dot_on">#2F3B38</color>
+    <color name="taiji_dot_accent">#5E8C7C</color>
+    <color name="taiji_track_bg">#D5DDD2</color>
+    <color name="taiji_track_progress_start">#6E8F82</color>
+    <color name="taiji_track_progress_end">#2F3B38</color>
+    <color name="taiji_thumb_start">#FBFAF4</color>
+    <color name="taiji_thumb_end">#8FAE98</color>
 </resources>
