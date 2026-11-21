@@ -33,6 +33,9 @@ final class SoundSynth {
             case BAMBOO:
                 durationMs = 110;
                 break;
+            case TAIJI:
+                durationMs = 460;
+                break;
             case ELECTRONIC:
                 durationMs = 90;
                 break;
@@ -134,6 +137,22 @@ final class SoundSynth {
                             + 0.26 * Math.sin(2 * Math.PI * f * 1.86 * t)
                             + Math.signum(Math.sin(2 * Math.PI * f * 0.5 * t)) * 0.12
                             + noise(i) * 0.42 * Math.exp(-t * 190.0)) * decay * 0.55 * base;
+                    break;
+                }
+                // Taiji: yin-yang resonance. A low rounded fundamental (yin)
+                // meets a clear fifth and octave shimmer (yang), with a soft
+                // breath transient instead of a hard percussive attack.
+                case TAIJI: {
+                    double f = accent ? 261.63 : 220.0;
+                    double attack = 1.0 - Math.exp(-t * 420.0);
+                    double decay = Math.exp(-t * 3.2);
+                    wave = Math.sin(2 * Math.PI * f * t)
+                            + 0.42 * Math.sin(2 * Math.PI * f * 1.5 * t) * Math.exp(-t * 3.8)
+                            + 0.26 * Math.sin(2 * Math.PI * f * 2.0 * t) * Math.exp(-t * 5.4)
+                            + 0.12 * Math.sin(2 * Math.PI * f * 3.01 * t) * Math.exp(-t * 7.6)
+                            + 0.18 * Math.sin(2 * Math.PI * f * 0.5 * t) * Math.exp(-t * 4.0);
+                    wave += noise(i) * Math.exp(-t * 140.0) * 0.05;
+                    wave *= attack * decay * 0.46 * base;
                     break;
                 }
                 case MECHANICAL:

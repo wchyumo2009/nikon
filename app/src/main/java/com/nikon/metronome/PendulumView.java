@@ -28,6 +28,7 @@ public class PendulumView extends View {
     private final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path bodyPath = new Path();
     private final Path platePath = new Path();
+    private final QianliArtwork qianliArt = new QianliArtwork();
 
     private MetronomeEngine engine;
     private PendulumMode mode = PendulumMode.BOTTOM;
@@ -45,7 +46,8 @@ public class PendulumView extends View {
     public static final int STYLE_ROSE = 3;
     public static final int STYLE_NEON = 4;
     public static final int STYLE_TAIJI = 5;
-    public static final int STYLE_COUNT = 6;
+    public static final int STYLE_QIANLI = 6;
+    public static final int STYLE_COUNT = 7;
 
     private static final int TAIJI_INK = 0xFF232E2A;
     private static final int TAIJI_RICE = 0xFFF7F4EA;
@@ -53,9 +55,10 @@ public class PendulumView extends View {
     private int styleIndex = STYLE_SUNNY;
     private int userStyle = STYLE_SUNNY;
     private float taijiAngle;
+    private boolean taijiClockwise = true;
 
     private static final String[] STYLE_LABELS = {
-            "SUNNY BEAT", "宋韵", "AURORA", "ROSE GOLD", "NEON", "太极"
+            "SUNNY BEAT", "宋韵", "AURORA", "ROSE GOLD", "NEON", "太极", "千里江山"
     };
 
     private static final SparseIntArray SONG_COLORS = new SparseIntArray();
@@ -65,52 +68,53 @@ public class PendulumView extends View {
     private static final SparseIntArray TAIJI_COLORS;
 
     static {
-        // Warm sunny colour -> Song palette: rice paper, celadon, ink, cinnabar.
-        SONG_COLORS.put(0x33FFC94D, 0x1F7FA79B);
-        SONG_COLORS.put(0x00FFC94D, 0x007FA79B);
-        SONG_COLORS.put(0x1F8A5A20, 0x1F3C4A44);
-        SONG_COLORS.put(0xFFFFDC96, 0xFFDCE8DE);
-        SONG_COLORS.put(0xFFF7BE6B, 0xFFB9CFC2);
-        SONG_COLORS.put(0xFFE39A45, 0xFF96B3A6);
-        SONG_COLORS.put(0xFFFFC976, 0xFFD3E2D6);
-        SONG_COLORS.put(0x18B9681A, 0x183C4A44);
-        SONG_COLORS.put(0xFFF0A93B, 0xFF7C9187);
-        SONG_COLORS.put(0xFFF0A844, 0xFFB9CFC2);
-        SONG_COLORS.put(0xFFD87A24, 0xFF8FA99C);
-        SONG_COLORS.put(0xFFFFD77A, 0xFF7C9187);
-        SONG_COLORS.put(0xFFEAF6FF, 0xFFFBF8F0);
-        SONG_COLORS.put(0xFFFFFFFF, 0xFFFDFBF4);
-        SONG_COLORS.put(0xFFFFFBF0, 0xFFF5F1E6);
-        SONG_COLORS.put(0xFFE4F2FA, 0xFFE7E9DE);
-        SONG_COLORS.put(0xFF8FD3E8, 0xFF8FA99C);
-        SONG_COLORS.put(0x123A8FB0, 0x123C4A44);
-        SONG_COLORS.put(0xFF3D6B8A, 0xFF3C4A44);
-        SONG_COLORS.put(0xFF7FBBD4, 0xFF9AAFA4);
-        SONG_COLORS.put(0xFFFFE79C, 0xFFC4694A);
-        SONG_COLORS.put(0xFFFFB44D, 0xFFA6452F);
-        SONG_COLORS.put(0xFFFF8A3D, 0xFF8E3B28);
-        SONG_COLORS.put(0xFFE4761F, 0xFF8E3B28);
-        SONG_COLORS.put(0xFF7A3B0A, 0xFFFBF8F0);
-        SONG_COLORS.put(0xFFF0A22E, 0xFF3C4A44);
-        SONG_COLORS.put(0xFFFFF4C2, 0xFF8FA99C);
-        SONG_COLORS.put(0xFFFFC23D, 0xFF6E7F76);
-        SONG_COLORS.put(0xFFE07C1C, 0xFF2F3B38);
-        SONG_COLORS.put(0xFFE58B26, 0xFFB9CFC2);
-        SONG_COLORS.put(0xFFFFF0B0, 0xFFDCE8DE);
-        SONG_COLORS.put(0xFFFFB22E, 0xFF8FA99C);
-        SONG_COLORS.put(0xFFD46E14, 0xFF6E7F76);
-        SONG_COLORS.put(0xFFB45A12, 0xFF3C4A44);
-        SONG_COLORS.put(0xFFFFC94D, 0xFFB9CFC2);
-        SONG_COLORS.put(0xFF2EC4B6, 0xFF4E7C75);
-        SONG_COLORS.put(0xCCEFFFFB, 0xCCF3F7F2);
-        SONG_COLORS.put(0xFFFFF3B0, 0xFFDCE8DE);
-        SONG_COLORS.put(0xFFE06A1A, 0xFF3C4A44);
-        SONG_COLORS.put(0xFF159C90, 0xFF3C4A44);
-        SONG_COLORS.put(0x88159C90, 0x883C4A44);
-        SONG_COLORS.put(0xFFFF5A5F, 0xFFA6452F);
-        SONG_COLORS.put(0x44FFFFFF, 0x44FBF8F0);
-        SONG_COLORS.put(0xAAFFFFFF, 0xAAFBF8F0);
-        SONG_COLORS.put(0xCCFFFFFF, 0xCCF3F7F2);
+        // Warm sunny colour -> Song palette: warm rice paper, soft celadon,
+        // quiet ink-green and restrained cinnabar / antique gold.
+        SONG_COLORS.put(0x33FFC94D, 0x245F5A);
+        SONG_COLORS.put(0x00FFC94D, 0x005F5A);
+        SONG_COLORS.put(0x1F8A5A20, 0x1F3E544B);
+        SONG_COLORS.put(0xFFFFDC96, 0xFFE6F0E9);
+        SONG_COLORS.put(0xFFF7BE6B, 0xFFC6DCCF);
+        SONG_COLORS.put(0xFFE39A45, 0xFFA8C8B8);
+        SONG_COLORS.put(0xFFFFC976, 0xFFE6F0E9);
+        SONG_COLORS.put(0x18B9681A, 0x183E544B);
+        SONG_COLORS.put(0xFFF0A93B, 0xFF789C8C);
+        SONG_COLORS.put(0xFFF0A844, 0xFFC6DCCF);
+        SONG_COLORS.put(0xFFD87A24, 0xFF9CBCAB);
+        SONG_COLORS.put(0xFFFFD77A, 0xFF789C8C);
+        SONG_COLORS.put(0xFFEAF6FF, 0xFFFFFDF5);
+        SONG_COLORS.put(0xFFFFFFFF, 0xFFFBF9F1);
+        SONG_COLORS.put(0xFFFFFBF0, 0xFFF4EFE2);
+        SONG_COLORS.put(0xFFE4F2FA, 0xFFE9EFE6);
+        SONG_COLORS.put(0xFF8FD3E8, 0xFF789C8C);
+        SONG_COLORS.put(0x123A8FB0, 0x123E544B);
+        SONG_COLORS.put(0xFF3D6B8A, 0xFF3E544B);
+        SONG_COLORS.put(0xFF7FBBD4, 0xFF789C8C);
+        SONG_COLORS.put(0xFFFFE79C, 0xFFB4573E);
+        SONG_COLORS.put(0xFFFFB44D, 0xFFA44A34);
+        SONG_COLORS.put(0xFFFF8A3D, 0xFF8E3B2B);
+        SONG_COLORS.put(0xFFE4761F, 0xFF8E3B2B);
+        SONG_COLORS.put(0xFF7A3B0A, 0xFFFFFDF5);
+        SONG_COLORS.put(0xFFF0A22E, 0xFF3E544B);
+        SONG_COLORS.put(0xFFFFF4C2, 0xFFDCE9E0);
+        SONG_COLORS.put(0xFFFFC23D, 0xFFA8C8B8);
+        SONG_COLORS.put(0xFFE07C1C, 0xFF3E544B);
+        SONG_COLORS.put(0xFFE58B26, 0xFFC6DCCF);
+        SONG_COLORS.put(0xFFFFF0B0, 0xFFE6F0E9);
+        SONG_COLORS.put(0xFFFFB22E, 0xFFA8C8B8);
+        SONG_COLORS.put(0xFFD46E14, 0xFF789C8C);
+        SONG_COLORS.put(0xFFB45A12, 0xFF3E544B);
+        SONG_COLORS.put(0xFFFFC94D, 0xFFA8C8B8);
+        SONG_COLORS.put(0xFF2EC4B6, 0xFF789C8C);
+        SONG_COLORS.put(0xCCEFFFFB, 0xCCF3F1E8);
+        SONG_COLORS.put(0xFFFFF3B0, 0xFFE6F0E9);
+        SONG_COLORS.put(0xFFE06A1A, 0xFF3E544B);
+        SONG_COLORS.put(0xFF159C90, 0xFF3E544B);
+        SONG_COLORS.put(0x88159C90, 0x883E544B);
+        SONG_COLORS.put(0xFFFF5A5F, 0xFFB4573E);
+        SONG_COLORS.put(0x44FFFFFF, 0x44FFFDF5);
+        SONG_COLORS.put(0xAAFFFFFF, 0xAAFFFDF5);
+        SONG_COLORS.put(0xCCFFFFFF, 0xCCFFFDF5);
 
         // Derived styles keep the sunny palette's internal relationships by
         // rotating the whole hue, so every variant stays harmonious. NEON also
@@ -309,6 +313,15 @@ public class PendulumView extends View {
         return mode;
     }
 
+    public void setTaijiClockwise(boolean clockwise) {
+        if (taijiClockwise == clockwise) {
+            return;
+        }
+        taijiClockwise = clockwise;
+        taijiAngle = 0f;
+        invalidate();
+    }
+
     public void setBpm(int bpm) {
         if (this.bpm == bpm) {
             return;
@@ -393,8 +406,12 @@ public class PendulumView extends View {
             angle = 0f;
         }
 
-        drawMovingParts(canvas, angle, phase, running);
-        drawBpmPointer(canvas);
+        if (styleIndex == STYLE_QIANLI) {
+            qianliArt.drawMoving(canvas, angle, bpm);
+        } else {
+            drawMovingParts(canvas, angle, phase, running);
+            drawBpmPointer(canvas);
+        }
 
         if (running || settling) {
             postInvalidateOnAnimation();
@@ -403,11 +420,16 @@ public class PendulumView extends View {
 
     private void computeGeometry(float w, float h) {
         bodyH = Math.min(h * 0.93f, w * 1.55f);
-        bodyW = bodyH * 0.60f;
+        if (styleIndex == STYLE_SONG) {
+            // Leave headroom for the stopper knob and keep the SVG's 304:460
+            // width-to-height ratio.
+            bodyH *= 0.94f;
+        }
+        bodyW = bodyH * (styleIndex == STYLE_SONG ? 0.661f : 0.60f);
         cx = w / 2f;
-        bodyBottom = h * 0.965f;
+        bodyBottom = h * (styleIndex == STYLE_SONG ? 0.94f : 0.965f);
         bodyTop = bodyBottom - bodyH;
-        topHalf = bodyW * 0.17f;
+        topHalf = bodyW * (styleIndex == STYLE_SONG ? 0.29f : 0.17f);
         botHalf = bodyW * 0.5f;
         rodW = Math.max(2.5f, bodyW * 0.014f);
         rodLen = bodyH * 0.70f;
@@ -416,14 +438,47 @@ public class PendulumView extends View {
                 ? bodyBottom - bodyH * 0.16f
                 : bodyTop + bodyH * 0.10f;
 
+        // Share the same scale geometry across styles so the marks and the
+        // BPM pointer keep identical proportions (the Song gourd is wide
+        // enough at every height to hold the full-length plate).
         plateTop = bodyTop + bodyH * 0.13f;
         plateBottom = bodyBottom - bodyH * 0.20f;
-        plateTopHalf = topHalf * 0.50f;
-        plateBotHalf = botHalf * 0.32f;
+        plateTopHalf = styleIndex == STYLE_SONG ? bodyW * 0.085f : topHalf * 0.50f;
+        plateBotHalf = styleIndex == STYLE_SONG ? bodyW * 0.16f : botHalf * 0.32f;
 
         // Taiji is the only element in this style: centre it in the card.
         taijiCy = h / 2f;
         taijiDiscR = Math.min(w, h) * 0.40f;
+    }
+
+    private float songSx() {
+        return botHalf / 152f;
+    }
+
+    private float songSy() {
+        return bodyH / 460f;
+    }
+
+    private float songX(float svgX, float sx) {
+        return cx + (svgX - 200f) * sx;
+    }
+
+    private float songY(float svgY, float sy) {
+        return bodyTop + (svgY - 68f) * sy;
+    }
+
+    private void drawSoftEllipse(Canvas c, float ex, float ey, float rx, float ry,
+                                 float rotate, int centerColor) {
+        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+        p.setStyle(Paint.Style.FILL);
+        p.setShader(new RadialGradient(0, 0, rx, centerColor, 0x00FFFFFF,
+                Shader.TileMode.CLAMP));
+        c.save();
+        c.translate(ex, ey);
+        c.rotate(rotate);
+        c.scale(1f, ry / rx);
+        c.drawCircle(0, 0, rx, p);
+        c.restore();
     }
 
     private void buildStaticLayer(int w, int h) {
@@ -437,19 +492,41 @@ public class PendulumView extends View {
         paint.setAntiAlias(true);
         paint.setStyle(Paint.Style.FILL);
 
+        if (styleIndex == STYLE_QIANLI) {
+            qianliArt.drawStatic(c, w, h);
+            cacheDirty = false;
+            return;
+        }
+
         drawBackdrop(c, w, h);
 
-        // Soft shadow under the case.
-        paint.setColor(tone(0x1F8A5A20));
-        c.drawOval(cx - botHalf * 1.25f, bodyBottom - bodyH * 0.012f,
-                cx + botHalf * 1.25f, bodyBottom + bodyH * 0.035f, paint);
+        // Soft shadow under the case (SVG ellipse cx=200 cy=545 rx=140 ry=12).
+        if (styleIndex == STYLE_SONG) {
+            float sx = songSx();
+            float sy = songSy();
+            paint.setColor(tone(0x295F8071));
+            c.drawOval(cx - 140 * sx, bodyBottom + 5 * sy,
+                    cx + 140 * sx, bodyBottom + 29 * sy, paint);
+        } else {
+            paint.setColor(tone(0x1F8A5A20));
+            c.drawOval(cx - botHalf * 1.25f, bodyBottom - bodyH * 0.012f,
+                    cx + botHalf * 1.25f, bodyBottom + bodyH * 0.035f, paint);
+        }
         // The shadow's translucent alpha would otherwise mute the body shader.
         paint.setAlpha(0xFF);
 
         makeBodyPath(bodyPath);
-        paint.setShader(new LinearGradient(cx - botHalf, bodyTop, cx + botHalf, bodyBottom,
-                new int[]{tone(0xFFFFDC96), tone(0xFFF7BE6B), tone(0xFFE39A45), tone(0xFFFFC976)},
-                null, Shader.TileMode.CLAMP));
+        if (styleIndex == STYLE_SONG) {
+            paint.setShader(new LinearGradient(cx, bodyTop, cx, bodyBottom,
+                    new int[]{tone(0xFFFBFBF6), tone(0xFFEFF6F0),
+                            tone(0xFFC8DBCE), tone(0xFFA9C6B6), tone(0xFF7F9F8E)},
+                    null, Shader.TileMode.CLAMP));
+        } else {
+            paint.setShader(new LinearGradient(cx - botHalf, bodyTop, cx + botHalf, bodyBottom,
+                    new int[]{tone(0xFFFFDC96), tone(0xFFF7BE6B),
+                            tone(0xFFE39A45), tone(0xFFFFC976)},
+                    null, Shader.TileMode.CLAMP));
+        }
         c.drawPath(bodyPath, paint);
         paint.setShader(null);
 
@@ -459,7 +536,12 @@ public class PendulumView extends View {
         c.restore();
 
         drawBodyOutline(c);
-        drawBase(c);
+        if (styleIndex == STYLE_SONG) {
+            drawGourdDetails(c);
+        }
+        if (styleIndex != STYLE_SONG) {
+            drawBase(c);
+        }
 
         drawScalePlate(c);
         drawNamePlate(c);
@@ -498,20 +580,38 @@ public class PendulumView extends View {
         float top = bodyTop, bottom = bodyBottom;
         switch (styleIndex) {
             case STYLE_SONG:
-                // Slightly waisted, elegant vase profile.
-                path.reset();
-                path.moveTo(cx - topHalf, top);
-                path.lineTo(cx + topHalf, top);
-                path.quadTo(cx + topHalf * 1.35f, top + bodyH * 0.16f,
-                        cx + botHalf * 0.78f, top + bodyH * 0.42f);
-                path.quadTo(cx + botHalf * 0.60f, top + bodyH * 0.62f,
-                        cx + botHalf, bottom);
-                path.lineTo(cx - botHalf, bottom);
-                path.quadTo(cx - botHalf * 0.60f, top + bodyH * 0.62f,
-                        cx - botHalf * 0.78f, top + bodyH * 0.42f);
-                path.quadTo(cx - topHalf * 1.35f, top + bodyH * 0.16f,
-                        cx - topHalf, top);
-                path.close();
+                // Exact silhouette from the reference SVG (viewBox 30 15 340 550).
+                {
+                    float sx = songSx();
+                    float sy = songSy();
+                    path.reset();
+                    path.moveTo(songX(200, sx), songY(68, sy));
+                    path.cubicTo(songX(254, sx), songY(68, sy),
+                            songX(288, sx), songY(104, sy),
+                            songX(288, sx), songY(150, sy));
+                    path.cubicTo(songX(288, sx), songY(188, sy),
+                            songX(268, sx), songY(220, sy),
+                            songX(240, sx), songY(242, sy));
+                    path.cubicTo(songX(292, sx), songY(272, sy),
+                            songX(352, sx), songY(308, sy),
+                            songX(352, sx), songY(372, sy));
+                    path.cubicTo(songX(352, sx), songY(458, sy),
+                            songX(288, sx), songY(528, sy),
+                            songX(200, sx), songY(528, sy));
+                    path.cubicTo(songX(112, sx), songY(528, sy),
+                            songX(48, sx), songY(458, sy),
+                            songX(48, sx), songY(372, sy));
+                    path.cubicTo(songX(48, sx), songY(308, sy),
+                            songX(108, sx), songY(272, sy),
+                            songX(160, sx), songY(242, sy));
+                    path.cubicTo(songX(132, sx), songY(220, sy),
+                            songX(112, sx), songY(188, sy),
+                            songX(112, sx), songY(150, sy));
+                    path.cubicTo(songX(112, sx), songY(104, sy),
+                            songX(146, sx), songY(68, sy),
+                            songX(200, sx), songY(68, sy));
+                    path.close();
+                }
                 break;
             case STYLE_AURORA:
                 // Round-bottom droplet, soft glass form.
@@ -569,12 +669,47 @@ public class PendulumView extends View {
         paint.setStyle(Paint.Style.STROKE);
         switch (styleIndex) {
             case STYLE_SONG:
-                // Fine horizontal rice-paper lines plus a few celadon bands.
-                paint.setStrokeWidth(Math.max(1f, bodyH * 0.0013f));
-                for (int i = 0; i < 34; i++) {
-                    float y = bodyTop + bodyH * (i + 0.5f) / 34f;
-                    paint.setColor(i % 5 == 0 ? tone(0x334E7C75) : tone(0x18FFFFFF));
-                    c.drawLine(cx - botHalf, y, cx + botHalf, y, paint);
+                // Decorations from the reference SVG, clipped to the body.
+                {
+                    float sx = songSx();
+                    float sy = songSy();
+                    paint.setStyle(Paint.Style.STROKE);
+                    paint.setStrokeWidth(Math.max(2f, 12 * sy));
+                    paint.setColor(tone(0x734E6F60));
+                    c.drawPath(bodyPath, paint);
+
+                    paint.setStrokeWidth(Math.max(0.8f, 1.2f * sy));
+                    paint.setColor(tone(0x2154796A));
+                    int[] lines = {150, 178, 206, 300, 328, 356, 384, 412, 440, 468};
+                    for (int ly : lines) {
+                        float y = songY(ly, sy);
+                        c.drawLine(songX(30, sx), y, songX(370, sx), y, paint);
+                    }
+
+                    drawSoftEllipse(c, songX(200, sx), songY(528, sy),
+                            128 * sx, 48 * sy, 0f, tone(0x473F5A4E));
+                    drawSoftEllipse(c, songX(150, sx), songY(118, sy),
+                            32 * sx, 46 * sy, -16f, tone(0x80FFFFFF));
+                    drawSoftEllipse(c, songX(176, sx), songY(102, sy),
+                            12 * sx, 20 * sy, -18f, tone(0xD9FFFFFF));
+                    drawSoftEllipse(c, songX(114, sx), songY(316, sy),
+                            26 * sx, 58 * sy, -12f, tone(0x47FFFFFF));
+
+                    paint.setStyle(Paint.Style.STROKE);
+                    paint.setStrokeWidth(Math.max(2f, 6 * sy));
+                    paint.setColor(tone(0xFFAD4F3D));
+                    Path cord = new Path();
+                    cord.moveTo(songX(148, sx), songY(244, sy));
+                    cord.quadTo(songX(200, sx), songY(268, sy),
+                            songX(252, sx), songY(244, sy));
+                    c.drawPath(cord, paint);
+                    paint.setStrokeWidth(Math.max(1f, 3 * sy));
+                    paint.setColor(tone(0xCC8C3E30));
+                    Path cord2 = new Path();
+                    cord2.moveTo(songX(140, sx), songY(254, sy));
+                    cord2.quadTo(songX(200, sx), songY(280, sy),
+                            songX(260, sx), songY(254, sy));
+                    c.drawPath(cord2, paint);
                 }
                 break;
             case STYLE_AURORA:
@@ -641,6 +776,13 @@ public class PendulumView extends View {
             paint.setColor(styleIndex == STYLE_NEON ? tone(0x5529E0E6) : tone(0x4480D0FF));
             c.drawPath(bodyPath, paint);
         }
+        if (styleIndex == STYLE_SONG) {
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(Math.max(2f, 4 * songSy()));
+            paint.setColor(tone(0xFF557A6B));
+            c.drawPath(bodyPath, paint);
+            return;
+        }
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(Math.max(2f, bodyH * 0.004f));
         paint.setColor(styleIndex == STYLE_NEON ? tone(0xFF29E0E6)
@@ -648,11 +790,60 @@ public class PendulumView extends View {
                 : styleIndex == STYLE_ROSE ? tone(0xFFFFE0C0)
                 : tone(0xFFF0A93B));
         c.drawPath(bodyPath, paint);
-        if (styleIndex == STYLE_SUNNY || styleIndex == STYLE_SONG) {
+        if (styleIndex == STYLE_SUNNY) {
             paint.setStrokeWidth(1f);
             paint.setColor(tone(0xAAFFFFFF));
             c.drawLine(cx - topHalf, bodyTop, cx - botHalf * 0.97f, bodyBottom, paint);
         }
+    }
+
+    /** Silver stopper from the reference SVG. */
+    private void drawGourdDetails(Canvas c) {
+        float sx = songSx();
+        float sy = songSy();
+        paint.reset();
+        paint.setAntiAlias(true);
+        paint.setStyle(Paint.Style.FILL);
+
+        // Knob: circle cx=200 cy=36 r=7.
+        float kx = songX(200, sx);
+        float ky = songY(36, sy);
+        float kr = 7 * sx;
+        paint.setShader(new RadialGradient(kx - kr * 0.35f, ky - kr * 0.4f,
+                kr * 1.5f, tone(0xFFF7F8F5), tone(0xFF9AA8A1),
+                Shader.TileMode.CLAMP));
+        c.drawCircle(kx, ky, kr, paint);
+        paint.setShader(null);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(Math.max(1f, 2 * sy));
+        paint.setColor(tone(0xFF6D736F));
+        c.drawCircle(kx, ky, kr, paint);
+
+        // Cap: rect x=172 y=44 w=56 h=26 rx=8.
+        RectF cap = new RectF(songX(172, sx), songY(44, sy),
+                songX(228, sx), songY(70, sy));
+        paint.setStyle(Paint.Style.FILL);
+        paint.setShader(new LinearGradient(0, cap.top, 0, cap.bottom,
+                new int[]{tone(0xFFF7F8F5), tone(0xFFC9D1CB),
+                        tone(0xFF9AA8A1), tone(0xFF7E8983)},
+                new float[]{0f, 0.35f, 0.75f, 1f}, Shader.TileMode.CLAMP));
+        c.drawRoundRect(cap, 8 * sx, 8 * sx, paint);
+        paint.setShader(null);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(Math.max(1f, 2.5f * sy));
+        paint.setColor(tone(0xFF6D736F));
+        c.drawRoundRect(cap, 8 * sx, 8 * sx, paint);
+
+        // Base ring: rect x=166 y=66 w=68 h=12 rx=6.
+        RectF ring = new RectF(songX(166, sx), songY(66, sy),
+                songX(234, sx), songY(78, sy));
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(tone(0xFF9AA39D));
+        c.drawRoundRect(ring, 6 * sx, 6 * sx, paint);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(Math.max(1f, 2 * sy));
+        paint.setColor(tone(0xFF6D736F));
+        c.drawRoundRect(ring, 6 * sx, 6 * sx, paint);
     }
 
     private void drawBase(Canvas c) {
@@ -682,6 +873,18 @@ public class PendulumView extends View {
         paint.setStrokeWidth(Math.max(1.5f, bodyH * 0.003f));
         paint.setColor(tone(0xFF8FD3E8));
         c.drawPath(platePath, paint);
+        if (styleIndex == STYLE_SONG) {
+            // A fine ink hairline inside the celadon rim keeps the rice-paper
+            // scale crisp without making it visually heavier.
+            float inset = bodyW * 0.012f;
+            Path innerPlate = new Path();
+            makeTrapezoid(innerPlate, cx,
+                    plateTop + inset * 0.6f, plateTopHalf - inset,
+                    plateBottom - inset * 0.6f, plateBotHalf - inset);
+            paint.setStrokeWidth(Math.max(0.8f, bodyH * 0.0012f));
+            paint.setColor(tone(0x55556F63));
+            c.drawPath(innerPlate, paint);
+        }
 
         // Recess in which the rod travels.
         paint.setStyle(Paint.Style.FILL);
@@ -705,6 +908,14 @@ public class PendulumView extends View {
     }
 
     private void drawNamePlate(Canvas c) {
+        if (styleIndex == STYLE_SONG) {
+            textPaint.setTextAlign(Paint.Align.CENTER);
+            textPaint.setTextSize(bodyH * 0.028f);
+            textPaint.setColor(tone(0xFF3E544B));
+            c.drawText(STYLE_LABELS[styleIndex], cx,
+                    bodyBottom - bodyH * 0.055f, textPaint);
+            return;
+        }
         float plateW = Math.min(botHalf * 1.05f, bodyW * 0.5f);
         float plateH = bodyH * 0.05f;
         float y = bodyBottom - bodyH * 0.085f;
@@ -736,7 +947,8 @@ public class PendulumView extends View {
      */
     private void drawTaijiMoving(Canvas c, double phase, boolean running) {
         if (running) {
-            taijiAngle = (float) (180.0 * (phase % 2.0));
+            float step = (float) (180.0 * (phase % 2.0));
+            taijiAngle = taijiClockwise ? step : -step;
         } else if (wasRunning) {
             taijiAngle = Math.round(taijiAngle / 180f) * 180f;
         }
@@ -878,17 +1090,24 @@ public class PendulumView extends View {
             return;
         }
         if (styleIndex == STYLE_SONG) {
-            // Celadon bar weight.
+            // Celadon bar weight with gilt end caps.
             paint.setShader(new LinearGradient(cx - halfW, 0, cx + halfW, 0,
-                    new int[]{tone(0xFF3C4A44), tone(0xFFDCE8DE),
-                            tone(0xFF96B3A6), tone(0xFF3C4A44)},
+                    new int[]{tone(0xFF3E544B), tone(0xFFE6F0E9),
+                            tone(0xFFA8C8B8), tone(0xFF3E544B)},
                     null, Shader.TileMode.CLAMP));
             c.drawRoundRect(cx - halfW, wy - halfH, cx + halfW, wy + halfH,
                     halfH * 0.6f, halfH * 0.6f, paint);
             paint.setShader(null);
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(tone(0xFFC6A15B));
+            float capW = halfW * 0.28f;
+            c.drawRoundRect(cx - halfW, wy - halfH, cx - halfW + capW, wy + halfH,
+                    halfH * 0.6f, halfH * 0.6f, paint);
+            c.drawRoundRect(cx + halfW - capW, wy - halfH, cx + halfW, wy + halfH,
+                    halfH * 0.6f, halfH * 0.6f, paint);
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(1.5f);
-            paint.setColor(tone(0xFF3C4A44));
+            paint.setColor(tone(0xFF3E544B));
             c.drawRoundRect(cx - halfW, wy - halfH, cx + halfW, wy + halfH,
                     halfH * 0.6f, halfH * 0.6f, paint);
             return;

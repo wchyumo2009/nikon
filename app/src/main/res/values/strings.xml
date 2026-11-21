@@ -13,6 +13,9 @@
     <string name="mode_top">上端摆动</string>
     <string name="mode_bottom">下端摆动</string>
     <string name="mode_spring">弹簧式摆动</string>
+    <string name="mode_direction_title">旋转方向</string>
+    <string name="mode_clockwise">顺时针</string>
+    <string name="mode_counterclockwise">逆时针</string>
     <string name="time_signature">拍号</string>
     <string name="sound">音色</string>
     <string name="accent">重拍</string>
@@ -36,10 +39,15 @@
     <string name="style_rose">玫瑰金</string>
     <string name="style_neon">赛博霓虹</string>
     <string name="style_taiji">阴阳太极</string>
+    <string name="style_qianli">千里江山</string>
     <string name="app_name_taiji">太极节拍器</string>
     <string name="subtitle_taiji">YIN YANG · 一拍一转，阴阳相生</string>
     <string name="status_ready_taiji">静候起拍 · 阴阳相生，动静相宜</string>
     <string name="status_running_taiji">行拍中 · %1$d BPM · %2$s</string>
     <string name="theme_taiji">太极</string>
     <string name="theme_toggle_desc">切换主题：跟随系统、亮色、暗色、宋韵、太极</string>
+    <string name="style_prev">‹</string>
+    <string name="style_next">›</string>
+    <string name="style_prev_desc">上一个样式</string>
+    <string name="style_next_desc">下一个样式</string>
 </resources>

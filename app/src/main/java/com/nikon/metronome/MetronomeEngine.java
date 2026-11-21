@@ -24,7 +24,7 @@ public final class MetronomeEngine {
 
     public enum SoundType {
         PIANO, MECHANICAL, WOODBLOCK, ELECTRONIC,
-        GUQIN, BELL, CHIME, DRUM, BAMBOO;
+        GUQIN, BELL, CHIME, DRUM, BAMBOO, TAIJI;
 
         public static SoundType fromOrdinal(int ordinal) {
             SoundType[] values = values();
